@@ -758,7 +758,7 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 </style>
 </head>
 <body>
-<div id="home" class="home" hidden>
+<div id="home" class="home">
   <div class="home-in">
     <div class="home-top"><i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i><span class="home-brand">Birkis Design</span></div>
     <h1 class="home-title">Vítej<span id="homeName"></span></h1>
@@ -795,6 +795,17 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
       <div class="seg"><button class="btn sm" type="button" id="lockCopy">Kopírovat kód</button><button class="btn sm" type="button" id="lockSkip">Pokračovat do editoru</button></div></div>
   </form>
 </div>
+<script>
+/* hned po načtení: úvodní obrazovka je vidět vždy, zámek se ukáže dřív, než se načte zbytek */
+(function(){ try {
+  var h=location.hostname, lockOn=/(^|\.)birkisdesign\.cz$|github\.io$/.test(h)||/[?&]lock/.test(location.search);
+  if(!lockOn) return;
+  var ok=!!sessionStorage.getItem('ge-unlock');
+  if(!ok){ var v=JSON.parse(localStorage.getItem('ge-unlock')||'null'); ok=!!(v&&v.exp>Date.now()); }
+  if(!ok){ var L=document.getElementById('lock'); if(L) L.hidden=false; }
+} catch(e){} })();
+</script>
+
 
 <div class="app">
   <header>
