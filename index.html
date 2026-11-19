@@ -329,6 +329,25 @@ body{background:#05070b radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 .gthumb.squish{animation:gsquish .45s cubic-bezier(.3,.7,.3,1)}
 @keyframes gsquish{0%{scale:1 1}35%{scale:1.08 .9}70%{scale:.98 1.03}100%{scale:1 1}}
 @media (prefers-reduced-motion:reduce){.gthumb{transition:none}.gthumb.squish{animation:none}}
+
+/* jemnější, méně svítivé sklo */
+.btn,.hseg,.btn.chk,.seg.tog{
+  background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.06),rgba(255,255,255,0) 55%),rgba(255,255,255,.035)!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.22)!important}
+.btn:hover{background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.09),rgba(255,255,255,0) 60%),rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.14)!important}
+.btn.strong{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.15)!important}
+.btn.primary{background:radial-gradient(120% 160% at 20% 0%,rgba(255,255,255,.08),rgba(255,255,255,0) 58%),rgba(80,145,255,.14)!important;
+  border:1px solid rgba(140,185,255,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 14px rgba(0,0,0,.22)!important}
+.btn.primary:hover{filter:none;background:rgba(80,145,255,.2)!important}
+.btn.on{background:rgba(80,145,255,.12)!important;border-color:rgba(140,185,255,.22)!important}
+.gthumb{background:radial-gradient(120% 160% at 20% 0%,rgba(255,255,255,.08),rgba(255,255,255,0) 58%),rgba(80,145,255,.16);
+  border:1px solid rgba(140,185,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 8px rgba(0,0,0,.2)}
+.hseg .hs.on,.seg.tog .btn.on{color:#fff}
+body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,.14),transparent 60%) fixed,
+  radial-gradient(900px 600px at 105% 105%,rgba(255,90,54,.09),transparent 60%) fixed;background-color:#06080c}
+.brand i{box-shadow:0 0 0 1px rgba(255,255,255,.1) inset}
 </style>
 </head>
 <body>
