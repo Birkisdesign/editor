@@ -224,22 +224,57 @@ textarea,.f input[type=number],.f select,.f input[type=color]{background:#0c0f15
 .fix-opt.past:hover{background:rgba(52,211,153,.22)!important}
 .gal-it{border-radius:8px}
 ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#262c38;border-radius:10px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-track{background:transparent}
+
+/* ===== horní panel + glass ===== */
+body{background:#06080c radial-gradient(1200px 700px at 8% -10%,rgba(61,139,255,.22),transparent 60%) fixed,
+  radial-gradient(900px 600px at 105% 110%,rgba(255,90,54,.16),transparent 60%) fixed,
+  radial-gradient(700px 500px at 60% 40%,rgba(120,80,255,.08),transparent 70%) fixed;background-color:#06080c}
+header{background:rgba(14,17,24,.55);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 8px 30px rgba(0,0,0,.25);gap:14px;z-index:5}
+.brand{font-size:22px;letter-spacing:.04em;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand span{background:linear-gradient(90deg,#fff,#c9dbff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{margin-left:2px;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.hgroup{display:flex;align-items:center;gap:8px}
+.hgroup[hidden]{display:none}
+.hlabel{font-family:"Barlow Condensed","Inter",system-ui,sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hseg{display:flex;padding:3px;gap:3px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);box-shadow:0 1px 0 rgba(255,255,255,.04) inset}
+.hs{border:0;background:transparent;color:#c3cbd9;font:inherit;font-weight:500;font-size:13px;padding:6px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:baseline;gap:6px;white-space:nowrap;transition:background .15s,color .15s}
+.hs small{font-size:11px;color:var(--muted);font-weight:400}
+.hs:hover{background:rgba(255,255,255,.06);color:#fff}
+.hs.on{background:linear-gradient(180deg,rgba(77,151,255,.9),rgba(47,122,240,.9));color:#fff;box-shadow:0 4px 14px rgba(47,122,240,.35),0 1px 0 rgba(255,255,255,.2) inset}
+.hs.on small{color:rgba(255,255,255,.8)}
+.hspace{flex:1}
+.btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18)}
+.btn.strong{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff;font-weight:600}
+.btn.strong:hover{background:rgba(255,255,255,.16)}
+header .btn.primary,header .btn.strong{padding:8px 16px;font-weight:600}
+.stage{background-color:transparent}
+aside{background:rgba(12,15,21,.5);backdrop-filter:blur(22px) saturate(140%);-webkit-backdrop-filter:blur(22px) saturate(140%);border-left:1px solid rgba(255,255,255,.08)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 8px 24px rgba(0,0,0,.18)}
+.card:hover{border-color:rgba(255,255,255,.16)}
+textarea,.f input[type=number],.f select,.f input[type=color],.fix-btn{background:rgba(0,0,0,.28)!important;border-color:rgba(255,255,255,.1)!important}
+.modal-bg{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.fix-list,.modal{background:rgba(16,20,28,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.nav-arrow,.board-pill,.hint,.tips{background:rgba(14,17,24,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(255,255,255,.1)}
+
+header{overflow:hidden}
+@media (max-width:1680px){.brand small{display:none}}
+@media (max-width:1500px){.hs small{display:none}.hlabel{font-size:11px;letter-spacing:.08em}header{gap:10px}}
+@media (max-width:1350px){.hlabel{display:none}#syncWrap{font-size:12px}.brand{font-size:19px}header .btn.primary,header .btn.strong{padding:8px 12px}}
+@media (max-width:1100px){#syncWrap{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand"><i></i>Editor grafik <small id="docname"></small></div>
-    <button class="btn" id="btnOpen">Otevřít PSD / SVG</button>
-    <select class="btn" id="board" title="Plátno (artboard)" hidden></select>
-    <button class="btn" id="btnSide" title="Zobrazit všechna plátna vedle sebe" hidden>Vedle sebe</button>
-    <label class="btn chk" id="syncWrap" title="Měnit texty a obrázky na všech plátnech zároveň" hidden><input type="checkbox" id="syncChk" checked> Měnit všechna plátna</label>
+    <div class="brand"><i></i><span>Birkis Design</span> <small id="docname"></small></div>
+    <div class="hgroup" id="viewGroup" hidden><span class="hlabel">Zobrazení</span>
+      <div class="hseg"><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button></div></div>
+    <div class="hgroup" id="boardGroup" hidden><span class="hlabel">Plátno</span><div class="hseg" id="board"></div></div>
+    <label class="btn chk" id="syncWrap" title="Měnit texty a obrázky na všech plátnech zároveň" hidden><input type="checkbox" id="syncChk" checked> Měnit obě plátna</label>
+    <span class="hspace"></span>
     <button class="btn needs" id="btnReset" title="Vrátit všechny změny od otevření">Vrátit změny</button>
-    <button class="btn needs" id="btnClose">Zavřít</button>
-    <button class="btn needs" id="btnSvg">Stáhnout SVG</button>
-    <select class="btn needs" id="scale" title="Velikost PNG">
-      <option value="1">PNG 1×</option><option value="2" selected>PNG 2×</option><option value="0.5">PNG ½×</option>
-    </select>
+    <button class="btn strong needs" id="btnSvg">Stáhnout SVG</button>
     <button class="btn primary needs" id="btnPng">Stáhnout PNG</button>
     <a class="btn" id="btnLogout" href="/logout" hidden title="Odhlásit se z editoru">Odhlásit</a>
     <input type="file" id="fileSvg" accept=".psd,.psb,.svg,image/svg+xml" hidden>
@@ -1701,8 +1736,7 @@ function renderSide() {
   boardsRow.querySelectorAll('.pv').forEach(n => n.remove());
   const side = isSide();
   boardsRow.classList.toggle('side', side);
-  $('#btnSide').hidden = !(state.boards && state.boards.length > 1);
-  $('#btnSide').classList.toggle('on', side);
+  $('#btnSide').classList.toggle('on', side); $('#btnSingle').classList.toggle('on', !side);
   const multi = !!(state.boards && state.boards.length > 1 && state.svg);
   $('#navPrev').hidden = $('#navNext').hidden = $('#boardPill').hidden = !multi || side;
   if (multi && !side) { const b = state.boards[state.boardIdx]; $('#boardPill').innerHTML = `<b>${state.boardIdx + 1}/${state.boards.length}</b> · ${esc(b.name)} · ${b.w}×${b.h}`; }
@@ -2514,7 +2548,7 @@ function fileBase() { const b = state.boards && state.boards.length > 1 ? '-' + 
 function exportSVG() { if (!state.svg) return; download(new Blob([exportString()], { type: 'image/svg+xml' }), fileBase() + '.svg'); }
 async function exportPNG() {
   if (!state.svg) return;
-  const scale = +$('#scale').value || 1, img = new Image();
+  const scale = 2, img = new Image();
   const okLoad = await new Promise(res => { img.onload = () => res(true); img.onerror = () => res(false); img.src = 'data:image/svg+xml;base64,' + b64(exportString()); });
   if (!okLoad) { toast('PNG se nepodařilo vytvořit.'); return; }
   await new Promise(r => setTimeout(r, 200));
@@ -2555,13 +2589,15 @@ function busy(on, text, p) {
   if (text) $('#busyText').textContent = text;
   if (p != null) $('#busyBar').style.width = Math.round(p * 100) + '%';
 }
+function boardKind(b) { const r = b.h / b.w; return r > 1.5 ? 'Story' : r > 1.1 ? 'Příspěvek' : r > 0.9 ? 'Čtverec' : 'Na šířku'; }
 function renderBoards() {
-  const sel = $('#board'); sel.innerHTML = '';
+  const box = $('#board'); box.innerHTML = '';
   const bs = state.boards || [];
-  sel.hidden = bs.length < 2;
-  $('#syncWrap').hidden = bs.length < 2;
-  bs.forEach((b, i) => sel.append(h('option', { value: i }, `${b.name} (${b.w}×${b.h})`)));
-  sel.value = state.boardIdx || 0;
+  const multi = bs.length > 1;
+  $('#boardGroup').hidden = !multi; $('#viewGroup').hidden = !multi;
+  $('#syncWrap').hidden = !multi;
+  bs.forEach((b, i) => box.append(h('button', { class: 'hs' + (i === (state.boardIdx || 0) ? ' on' : ''), title: `${b.name} (${b.w}×${b.h})`, onclick: () => switchBoard(i) },
+    h('b', {}, boardKind(b)), h('small', {}, `${b.w}×${b.h}`))));
   renderSide();
 }
 function switchBoard(i) {
@@ -2574,14 +2610,15 @@ function switchBoard(i) {
   state.original = b.original;
   renderBoards(); checkFonts();
 }
-$('#board').onchange = e => switchBoard(+e.target.value);
 state.sync = true;
 state.side = window.innerWidth > 880;
 try { const v = localStorage.getItem('ge-side'); if (v !== null) state.side = v === '1'; } catch (e) {}
 function stepBoard(d) { if (!state.boards || state.boards.length < 2) return; const n = state.boards.length; switchBoard((state.boardIdx + d + n) % n); }
 $('#navPrev').onclick = () => stepBoard(-1);
 $('#navNext').onclick = () => stepBoard(1);
-$('#btnSide').onclick = () => { state.side = !state.side; try { localStorage.setItem('ge-side', state.side ? '1' : '0'); } catch (e) {} renderSide(); };
+function setSide(v) { state.side = v; try { localStorage.setItem('ge-side', v ? '1' : '0'); } catch (e) {} renderSide(); }
+$('#btnSide').onclick = () => setSide(true);
+$('#btnSingle').onclick = () => setSide(false);
 $('#syncChk').onchange = e => { state.sync = e.target.checked; toast(state.sync ? 'Změny textů a obrázků se propíšou do všech pláten.' : 'Změny se teď dělají jen na aktuálním plátně.'); };
 async function openPSD(f) {
   state.persp = null;
@@ -2613,7 +2650,7 @@ function openFile(f) {
 }
 if (/birkis\.cz$/.test(location.hostname)) { $('#btnLogout').href = '/cdn-cgi/access/logout'; $('#btnLogout').hidden = false; }
 
-$('#btnOpen').onclick = $('#btnOpen2').onclick = () => $('#fileSvg').click();
+$('#btnOpen2').onclick = () => $('#fileSvg').click();
 $('#fileSvg').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
 $('#btnDemo').onclick = () => { state.boards = null; renderBoards(); loadSVG(demoSVG(), { name: 'ukazka' }); };
 function ask(msg, okLabel) {
@@ -2628,7 +2665,7 @@ function ask(msg, okLabel) {
   });
 }
 $('#btnReset').onclick = async () => { if (state.original && await ask('Vrátit všechny změny do stavu po otevření souboru?', 'Vrátit')) loadSVG(state.original, { keepOriginal: true }); };
-$('#btnClose').onclick = async () => { if (await ask('Zavřít grafiku? Pokud chceš změny zachovat, stáhni si ji předtím jako SVG.', 'Zavřít')) closeDoc(); };
+if ($('#btnClose')) $('#btnClose').onclick = async () => { if (await ask('Zavřít grafiku? Pokud chceš změny zachovat, stáhni si ji předtím jako SVG.', 'Zavřít')) closeDoc(); };
 $('#btnSvg').onclick = exportSVG;
 $('#btnPng').onclick = exportPNG;
 stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drag'); });
