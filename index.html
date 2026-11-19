@@ -771,6 +771,14 @@ body.enter .stage .boards-row,body.enter .stage #empty{animation:enterStage .7s 
 @keyframes enterRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
 @keyframes enterStage{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.home.launching *{transition:none!important}body.enter *{animation:none!important}}
+
+/* jednoduchá plynulá animace přechodu (jen průhlednost) */
+.home.launching *{transition:none!important}
+.home{will-change:opacity}
+.home.out{animation:homeFade .35s ease forwards!important}
+@keyframes homeFade{to{opacity:0}}
+body.enter > header,body.enter aside,body.enter .stage .boards-row,body.enter .stage #empty{animation:enterFade .45s ease both!important}
+@keyframes enterFade{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -2705,7 +2713,7 @@ function showHome() {
   $('#homeName').textContent = curUser && curUser.name ? ', ' + curUser.name : '';
   $('#homeLock').hidden = !(lockOn && LOCK.hash);
 }
-function hideHome() { const H = $('#home'); H.classList.add('out'); setTimeout(() => { H.hidden = true; H.classList.remove('out'); }, 500); }
+function hideHome() { const H = $('#home'); H.classList.add('out'); setTimeout(() => { H.hidden = true; H.classList.remove('out'); }, 360); }
 function setSection(sec) {
   state.section = sec; try { localStorage.setItem('ge-section', sec); } catch (e) {}
   $('#secBadge').hidden = false; $('#secBadge').textContent = SEC_NAMES[sec] || sec;
@@ -2713,17 +2721,10 @@ function setSection(sec) {
   if (typeof renderGallery === 'function') renderGallery();
 }
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
-  const H = $('#home'); if (H.classList.contains('launching')) return;
   setSection(t.dataset.sec);
-  const r = t.getBoundingClientRect();
-  t.style.setProperty('--dx', (innerWidth / 2 - (r.left + r.width / 2)) + 'px');
-  t.style.setProperty('--dy', (innerHeight / 2 - (r.top + r.height / 2)) + 'px');
-  t.classList.add('chosen'); H.classList.add('launching');
-  setTimeout(() => {
-    document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
-    hideHome();
-    setTimeout(() => { H.classList.remove('launching'); t.classList.remove('chosen'); document.body.classList.remove('enter'); }, 1100);
-  }, 420);
+  document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
+  hideHome();
+  setTimeout(() => document.body.classList.remove('enter'), 700);
 }));
 $('#btnHome').addEventListener('click', showHome);
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
