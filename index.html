@@ -464,9 +464,75 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 .lock-code code{display:block;word-break:break-all;padding:10px 12px;margin:6px 0 10px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);color:#cfe1ff;font-size:12px}
 .btn.icon{padding:7px 12px!important;font-size:15px}
 .btn.icon[hidden]{display:none}
+
+/* ===== úvodní obrazovka ===== */
+.home{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;overflow:auto;
+  background:radial-gradient(ellipse 80% 70% at 50% 45%,rgba(6,8,12,.25),rgba(6,8,12,.7));
+  backdrop-filter:blur(26px) saturate(140%);-webkit-backdrop-filter:blur(26px) saturate(140%);animation:lockIn .45s ease both}
+.home[hidden]{display:none}
+.home.out{animation:lockOut .5s cubic-bezier(.4,0,.2,1) forwards}
+.home-in{width:100%;max-width:980px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.home-top{display:flex;align-items:center;gap:12px;margin-bottom:28px;animation:cardIn .6s cubic-bezier(.2,.9,.25,1.1) both}
+.home .bmark.big{width:44px!important;height:44px!important;border-radius:14px!important}
+.home .bmark.big b{font-size:22px!important;margin-top:-4px!important}
+.home .bmark.big::after{left:9px!important;right:9px!important;bottom:7px!important;height:2px!important}
+.home .bmark{display:inline-flex;align-items:center;justify-content:center;position:relative;overflow:hidden;font-style:normal;
+  background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.1),rgba(255,255,255,0) 55%),rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 24px rgba(0,0,0,.35)}
+.home .bmark::after{content:"";position:absolute;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.85}
+.home .bmark b{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:800;line-height:1;background:linear-gradient(180deg,#fff,#c7d6ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home .bmark b+b{opacity:.85;margin-left:1px}
+.home-brand{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:800;font-size:20px;letter-spacing:.08em;text-transform:uppercase;color:#c9d3e4}
+.home-title{margin:0;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:800;font-size:clamp(44px,7vw,84px);line-height:1;letter-spacing:.01em;
+  background:linear-gradient(180deg,#fff 30%,#b9cdf0);-webkit-background-clip:text;background-clip:text;color:transparent;animation:cardIn .7s cubic-bezier(.2,.9,.25,1.1) both .05s}
+.home-sub{margin:14px 0 40px;color:var(--muted);font-size:18px;animation:cardIn .7s ease both .1s}
+.home-tiles{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tile{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:2px;min-height:220px;padding:24px 26px;border-radius:28px;cursor:pointer;text-align:left;color:#fff;font-family:"Barlow Condensed",system-ui,sans-serif;
+  background:radial-gradient(120% 90% at 15% 0%,rgba(255,255,255,.08),rgba(255,255,255,0) 55%),rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 50px rgba(0,0,0,.35);
+  backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);
+  transition:transform .35s cubic-bezier(.2,.9,.25,1.15),border-color .25s,background .25s;animation:cardIn .7s cubic-bezier(.2,.9,.25,1.1) both}
+.tile:nth-child(1){animation-delay:.12s}.tile:nth-child(2){animation-delay:.2s}.tile:nth-child(3){animation-delay:.28s}
+.tile::before{content:"";position:absolute;inset:auto -30% -55% auto;width:80%;height:90%;border-radius:50%;filter:blur(40px);opacity:.35;transition:opacity .3s}
+.tile[data-sec=muzi]::before{background:#3d8bff}.tile[data-sec=zeny]::before{background:#ff5a36}.tile[data-sec=ostatni]::before{background:#8f6bff}
+.tile:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2);background:radial-gradient(120% 90% at 15% 0%,rgba(255,255,255,.12),rgba(255,255,255,0) 55%),rgba(255,255,255,.05)}
+.tile:hover::before{opacity:.6}
+.tile:active{transform:translateY(-2px) scale(.98)}
+.tile-ico{position:absolute;top:22px;right:24px;font-size:30px;opacity:.55}
+.tile b{position:relative;font-size:18px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#aeb8c9}
+.tile-name{position:relative;font-size:52px;font-weight:800;line-height:1;letter-spacing:.01em}
+.home-foot{display:flex;gap:10px;margin-top:34px;animation:cardIn .7s ease both .35s}
+.home-add{position:fixed;z-index:2}
+@media (max-width:760px){.home-tiles{grid-template-columns:1fr}.tile{min-height:120px}.tile-name{font-size:40px}}
+.sec-badge{font-style:normal;font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#c9d3e4;-webkit-text-fill-color:#c9d3e4}
+.sec-badge[hidden]{display:none}
+.home-add[hidden],.lock-field[hidden],.lock-code[hidden],.lock-btn[hidden],.lock-field input[hidden]{display:none!important}
 </style>
 </head>
 <body>
+<div id="home" class="home" hidden>
+  <div class="home-in">
+    <div class="home-top"><i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i><span class="home-brand">Birkis Design</span></div>
+    <h1 class="home-title">Vítej<span id="homeName"></span></h1>
+    <p class="home-sub">Vyber editor, se kterým chceš pracovat</p>
+    <div class="home-tiles">
+      <button class="tile" data-sec="muzi"><span class="tile-ico">♂</span><b>Editor</b><span class="tile-name">Muži</span></button>
+      <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><b>Editor</b><span class="tile-name">Ženy</span></button>
+      <button class="tile" data-sec="ostatni"><span class="tile-ico">✦</span><b>Editor</b><span class="tile-name">Ostatní</span></button>
+    </div>
+    <div class="home-foot"><button class="btn sm" id="homeAdd">＋ Přidat účastníka</button><button class="btn sm" id="homeLock" hidden>🔒 Zamknout</button></div>
+  </div>
+  <form class="lock-card home-add" id="addForm" hidden autocomplete="off">
+    <h1>Nový účastník</h1>
+    <p class="lock-sub">Jméno se zobrazí na úvodní obrazovce</p>
+    <div class="lock-field"><input id="addName" placeholder="Jméno" required><input type="password" id="addPass" placeholder="Heslo" autocomplete="new-password" required><input type="password" id="addPass2" placeholder="Heslo znovu" autocomplete="new-password" required></div>
+    <button class="btn primary lock-btn" type="submit" id="addBtn">Vytvořit</button>
+    <p class="lock-err" id="addErr"></p>
+    <div class="lock-code" id="addCode" hidden><p>Pošli tento kód Claudovi, přidá účastníka do webu:</p><code id="addCodeTxt"></code>
+      <div class="seg"><button class="btn sm" type="button" id="addCopy">Kopírovat kód</button></div></div>
+    <button class="btn sm" type="button" id="addClose" style="margin-top:4px">Zavřít</button>
+  </form>
+</div>
 <div id="lock" class="lock" hidden>
   <form class="lock-card" id="lockForm" autocomplete="off">
     <i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i>
@@ -484,7 +550,8 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 
 <div class="app">
   <header>
-    <div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span> <small id="docname"></small></div>
+    <div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span> <em class="sec-badge" id="secBadge" hidden></em> <small id="docname"></small></div>
+    <button class="btn icon" id="btnHome" title="Domů">⌂</button>
     <div class="hgroup" id="viewGroup" hidden><div class="hseg"><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button></div></div>
     <div class="hgroup" id="boardGroup" hidden><div class="hseg" id="board"></div></div>
     <label class="btn chk" id="syncWrap" title="Měnit texty a obrázky na všech plátnech zároveň" hidden><input type="checkbox" id="syncChk" checked> Měnit obě plátna</label>
@@ -2239,8 +2306,47 @@ function renderList() {
 }
 
 
+
+/* ---------- úvodní obrazovka ---------- */
+const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
+state.section = (() => { try { return localStorage.getItem('ge-section') || 'zeny'; } catch (e) { return 'zeny'; } })();
+function showHome() {
+  const H = $('#home'); H.hidden = false; H.classList.remove('out');
+  $('#homeName').textContent = curUser && curUser.name ? ', ' + curUser.name : '';
+  $('#homeLock').hidden = !(lockOn && LOCK.hash);
+}
+function hideHome() { const H = $('#home'); H.classList.add('out'); setTimeout(() => { H.hidden = true; H.classList.remove('out'); }, 500); }
+function setSection(sec) {
+  state.section = sec; try { localStorage.setItem('ge-section', sec); } catch (e) {}
+  $('#secBadge').hidden = false; $('#secBadge').textContent = SEC_NAMES[sec] || sec;
+  if (typeof renderFixtures === 'function') renderFixtures();
+  if (typeof renderGallery === 'function') renderGallery();
+}
+document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => { setSection(t.dataset.sec); hideHome(); }));
+$('#btnHome').addEventListener('click', showHome);
+$('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} $('#home').hidden = true; showLock(); });
+$('#homeAdd').addEventListener('click', () => { $('#addForm').hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = ''; setTimeout(() => $('#addName').focus(), 50); });
+$('#addClose').addEventListener('click', () => { $('#addForm').hidden = true; $('#addForm').reset(); });
+$('#addForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const n = $('#addName').value.trim(), p1 = $('#addPass').value;
+  if (!n) return; if (p1.length < 6) { $('#addErr').textContent = 'Heslo musí mít aspoň 6 znaků.'; return; }
+  if (p1 !== $('#addPass2').value) { $('#addErr').textContent = 'Hesla se neshodují.'; return; }
+  const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+  $('#addBtn').disabled = true; const hash = await lockHash(p1, salt, LOCK_ITER); $('#addBtn').disabled = false;
+  $('#addCodeTxt').textContent = `BDUSER:${encodeURIComponent(n)}:${salt}:${hash}:${LOCK_ITER}`;
+  $('#addCode').hidden = false; $('#addBtn').hidden = true; $('#addForm .lock-field').hidden = true; $('#addErr').textContent = '';
+});
+$('#addCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#addCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
+$('#secBadge').hidden = false; $('#secBadge').textContent = SEC_NAMES[state.section] || '';
+
 /* ---------- zamykací obrazovka (heslo ověřené v prohlížeči) ---------- */
-const LOCK = { salt: 'xcjtzYjHekCQE7iSo+YbwA==', hash: 'WrMTKF25ZEm2C68Te5l8KQPn3CLUwJNS31b9MsBP7LA=', iter: 150000 }; // nastaví Claude podle kódu z nastavení hesla
+const LOCK_ITER = 150000;
+// účastníci: jméno + otisk hesla (kód BDUSER z „Přidat účastníka“ přidá Claude sem)
+const USERS = [
+  { name: '', salt: 'xcjtzYjHekCQE7iSo+YbwA==', hash: 'WrMTKF25ZEm2C68Te5l8KQPn3CLUwJNS31b9MsBP7LA=' },
+];
+const LOCK = { salt: USERS[0] ? USERS[0].salt : '', hash: USERS[0] ? USERS[0].hash : '', iter: LOCK_ITER }; // nastaví Claude podle kódu z nastavení hesla
 const lockOn = /(^|\.)birkisdesign\.cz$|github\.io$/.test(location.hostname) || /[?&]lock/.test(location.search);
 async function lockHash(pass, saltB64, iter) {
   const enc = new TextEncoder();
@@ -2249,10 +2355,16 @@ async function lockHash(pass, saltB64, iter) {
   const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, key, 256);
   return btoa(String.fromCharCode(...new Uint8Array(bits)));
 }
-function lockToken() { return LOCK.hash ? 'ok:' + LOCK.hash.slice(0, 16) : ''; }
+let curUser = null;
+function lockToken(u) { u = u || curUser; return u ? 'ok:' + u.hash.slice(0, 16) : ''; }
+function userFromToken(t) { return USERS.find(u => lockToken(u) === t) || null; }
 function isUnlocked() {
-  try { if (sessionStorage.getItem('ge-unlock') === lockToken()) return true;
-    const v = JSON.parse(localStorage.getItem('ge-unlock') || 'null'); return !!(v && v.t === lockToken() && v.exp > Date.now()); } catch (e) { return false; }
+  try {
+    const st = sessionStorage.getItem('ge-unlock'); let u = st && userFromToken(st);
+    if (!u) { const v = JSON.parse(localStorage.getItem('ge-unlock') || 'null'); if (v && v.exp > Date.now()) u = userFromToken(v.t); }
+    if (u) { curUser = u; return true; }
+  } catch (e) {}
+  return false;
 }
 function showLock() {
   const L = $('#lock'); L.hidden = false; L.classList.remove('out');
@@ -2283,17 +2395,19 @@ $('#lockForm').addEventListener('submit', async e => {
     return;
   }
   $('#lockBtn').disabled = true; $('#lockBtn').textContent = 'Ověřuji…';
-  const h = await lockHash(p1, LOCK.salt, LOCK.iter);
+  let found = null;
+  for (const u of USERS) { if ((await lockHash(p1, u.salt, LOCK_ITER)) === u.hash) { found = u; break; } }
   $('#lockBtn').disabled = false; $('#lockBtn').textContent = 'Odemknout';
-  if (h !== LOCK.hash) return lockFail('Špatné heslo.');
+  if (!found) return lockFail('Špatné heslo.');
+  curUser = found;
   try { sessionStorage.setItem('ge-unlock', lockToken());
     if ($('#lockRem').checked) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); } catch (e2) {}
-  $('#lockPass').value = ''; hideLock();
+  $('#lockPass').value = ''; hideLock(); showHome();
 });
 $('#lockCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lockCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
 $('#lockSkip').addEventListener('click', hideLock);
 $('#btnLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
-if (lockOn) { $('#btnLock').hidden = !LOCK.hash; if (!isUnlocked()) showLock(); }
+if (lockOn) { $('#btnLock').hidden = !LOCK.hash; if (!isUnlocked()) showLock(); else showHome(); } else showHome();
 
 /* ---------- posuvný ukazatel přepínačů ---------- */
 function placeThumbs() {
@@ -2339,7 +2453,7 @@ function fixturePast(i) {
 }
 function renderFixtures() {
   const box = $('#fixtures'); box.innerHTML = '';
-  if (!state.svg) return;
+  if (!state.svg || state.section !== 'zeny') return;
   const label = i => { const [r, d, hm, aw] = FIXTURES[i]; return `${r}. kolo · ${d.replace(',', '')} · ${SHORT[hm] || hm} – ${SHORT[aw] || aw}`; };
   let cur = ''; try { cur = localStorage.getItem('ge-fixture') || ''; } catch (e) {}
   if (!FIXTURES[cur]) cur = '';
@@ -2538,6 +2652,7 @@ async function galUse(it, btn) {
 function renderGallery() {
   const box = $('#gallery'); if (!box) return;
   box.innerHTML = '';
+  if (state.section !== 'zeny') { box.hidden = true; return; } box.hidden = false;
   const head = h('div', { class: 'gal-head' }, h('b', {}, 'Fotky ze zápasu'));
   box.append(head);
   if (galBlocked()) {
