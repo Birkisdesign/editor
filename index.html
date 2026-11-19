@@ -791,6 +791,13 @@ body.enter > header,body.enter aside,body.enter .stage .boards-row,body.enter .s
 header{position:relative;z-index:6}
 aside{position:relative;z-index:6}
 body{background:#05070b!important}
+
+/* horní lišta: jen logo (= domů) a štítek sekce */
+header .brand > span{display:none!important}
+#btnHome{display:none!important}
+header .brand .bmark{cursor:pointer;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+header .brand .bmark:hover{transform:scale(1.08)}
+header .brand .bmark:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -2744,6 +2751,8 @@ document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () =
   setTimeout(() => document.body.classList.remove('enter'), 700);
 }));
 $('#btnHome').addEventListener('click', showHome);
+document.querySelector('header .brand .bmark').addEventListener('click', showHome);
+document.querySelector('header .brand .bmark').title = 'Zpět na úvodní obrazovku';
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
 $('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
 $('#homeAdd').addEventListener('click', () => { $('#addForm').hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = ''; setTimeout(() => $('#addName').focus(), 50); });
