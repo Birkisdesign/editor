@@ -519,6 +519,13 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 @media (max-width:900px){.home > .bgfx .court3d{--cs:.45}}
 .home-title{line-height:1.15!important;padding:0 .06em .12em;margin-bottom:-.12em!important}
 .lock-card h1,.brand span{padding-bottom:.08em;line-height:1.15}
+
+.crowd{opacity:.55}.crowd .band.near{opacity:.4}
+.crowd .stand{fill:#0f1520;fill-opacity:.55;stroke:#ffffff;stroke-opacity:.04}
+.crowd .cheer{animation:cheer 2.6s ease-in-out infinite}
+.crowd .cheer.c1{animation-delay:-.9s;animation-duration:3.1s}.crowd .cheer.c2{animation-delay:-1.7s;animation-duration:2.2s}
+@keyframes cheer{0%,100%{fill-opacity:.2}50%{fill-opacity:.65}}
+@media (prefers-reduced-motion:reduce){.crowd .cheer{animation:none}}
 </style>
 </head>
 <body>
@@ -2318,6 +2325,44 @@ function renderList() {
 }
 
 
+
+
+/* ---------- tribuny s diváky (nenápadné) ---------- */
+(function buildCrowd() {
+  const NS = 'http://www.w3.org/2000/svg';
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const cols = ['#7f97c4', '#9aa6bb', '#c48a6e', '#6d7f9e', '#b7bfcc', '#8c7fb4', '#5a9cff', '#ff7a4a'];
+  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'crowd');
+  const band = (x0, y0, x1, y1, rows, gap, horiz, cls) => {
+    const host = g; const g2 = document.createElementNS(NS, 'g'); g2.setAttribute('class', 'band ' + (cls || '')); host.append(g2);
+    const gg = g2;
+    const plate = document.createElementNS(NS, 'rect');
+    plate.setAttribute('x', Math.min(x0, x1) - 10); plate.setAttribute('y', Math.min(y0, y1) - 10);
+    plate.setAttribute('width', Math.abs(x1 - x0) + 20); plate.setAttribute('height', Math.abs(y1 - y0) + 20);
+    plate.setAttribute('rx', 14); plate.setAttribute('class', 'stand'); gg.append(plate);
+    for (let r = 0; r < rows; r++) {
+      const len = horiz ? Math.abs(x1 - x0) : Math.abs(y1 - y0);
+      for (let t = 0; t <= len; t += gap) {
+        if (rnd() < 0.07) continue;
+        const c = document.createElementNS(NS, 'circle');
+        const jx = (rnd() - .5) * 3, jy = (rnd() - .5) * 3;
+        const x = horiz ? Math.min(x0, x1) + t : x0 + (x1 > x0 ? 1 : -1) * r * gap;
+        const y = horiz ? y0 + (y1 > y0 ? 1 : -1) * r * gap : Math.min(y0, y1) + t;
+        c.setAttribute('cx', (x + jx).toFixed(1)); c.setAttribute('cy', (y + jy).toFixed(1));
+        c.setAttribute('r', (3.6 + rnd() * 1.6).toFixed(1));
+        c.setAttribute('fill', cols[(rnd() * cols.length) | 0]);
+        c.setAttribute('fill-opacity', (0.22 + rnd() * 0.3).toFixed(2));
+        if (rnd() < 0.12) c.setAttribute('class', 'cheer c' + ((rnd() * 3) | 0));
+        gg.append(c);
+      }
+    }
+  };
+  band(10, -40, 1390, -40 - 7 * 15, 8, 15, true);     // horní tribuna
+  band(10, 740, 1390, 740 + 7 * 15, 8, 15, true, 'near');     // spodní tribuna
+  band(-40, 40, -40 - 5 * 15, 660, 6, 15, false);     // levá
+  band(1440, 40, 1440 + 5 * 15, 660, 6, 15, false);   // pravá
+  document.querySelectorAll('.plane svg').forEach(svg => svg.insertBefore(g.cloneNode(true), svg.querySelector('rect')));
+})();
 
 /* ---------- úvodní obrazovka ---------- */
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
