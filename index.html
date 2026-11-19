@@ -297,20 +297,38 @@ textarea{font-weight:600;font-size:17px}
 .btn.primary,.hs.on{
   background:
     radial-gradient(120% 160% at 20% 0%,rgba(255,255,255,.38),rgba(255,255,255,0) 55%),
-    linear-gradient(180deg,rgba(80,155,255,.62),rgba(40,115,240,.62))!important;
-  border:1px solid rgba(190,220,255,.5)!important;color:#fff;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.5),inset 0 -10px 18px -12px rgba(255,255,255,.25),0 10px 28px rgba(47,122,240,.42),0 1px 2px rgba(0,0,0,.3)!important}
+    linear-gradient(180deg,rgba(110,170,255,.26),rgba(70,135,245,.22))!important;
+  border:1px solid rgba(190,220,255,.38)!important;color:#fff;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -10px 18px -12px rgba(255,255,255,.2),0 8px 22px rgba(47,122,240,.18),0 1px 2px rgba(0,0,0,.25)!important}
 .btn.primary:hover{filter:brightness(1.1) saturate(1.1)}
 .hseg{padding:4px;gap:4px}
 .hs{border-radius:999px!important;background:transparent!important;box-shadow:none;padding:6px 14px}
 .hs:hover:not(.on){background:rgba(255,255,255,.08)!important}
-.btn.on{background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%),rgba(61,139,255,.3)!important;border-color:rgba(150,195,255,.55)!important}
+.btn.on{background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.3),rgba(255,255,255,0) 60%),rgba(61,139,255,.16)!important;border-color:rgba(150,195,255,.4)!important}
 .btn:active,.hs:active{transform:scale(.97)}
 .card .btn.sm{padding:5px 12px}
 .score-in,.btn.step{border-radius:12px!important}
 body{background:#05070b radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,.32),transparent 60%) fixed,
   radial-gradient(900px 600px at 105% 105%,rgba(255,90,54,.22),transparent 60%) fixed,
   radial-gradient(700px 500px at 55% 35%,rgba(140,90,255,.12),transparent 70%) fixed;background-color:#05070b}
+
+/* posuvný skleněný ukazatel v přepínačích */
+.hseg,.seg.tog{position:relative;isolation:isolate}
+.seg.tog{flex-wrap:nowrap;padding:4px;gap:4px;border-radius:999px;background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.12),rgba(255,255,255,0) 55%),rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.22),0 6px 18px rgba(0,0,0,.22);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%)}
+.seg.tog .btn{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none;-webkit-backdrop-filter:none}
+.hseg .hs.on,.seg.tog .btn.on{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+.hs,.seg.tog .btn{position:relative;z-index:1;transition:color .3s}
+.seg.tog .btn:not(.on){color:#aeb7c7}
+.gthumb{position:absolute;z-index:0;top:4px;bottom:4px;left:0;border-radius:999px;pointer-events:none;
+  background:radial-gradient(120% 160% at 20% 0%,rgba(255,255,255,.34),rgba(255,255,255,0) 58%),linear-gradient(180deg,rgba(110,170,255,.24),rgba(70,135,245,.2));
+  border:1px solid rgba(190,220,255,.36);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -8px 14px -10px rgba(255,255,255,.2),0 6px 18px rgba(47,122,240,.18);
+  transition:transform .45s cubic-bezier(.34,1.36,.5,1),width .45s cubic-bezier(.34,1.36,.5,1),opacity .2s}
+.gthumb.noanim{transition:none}
+.gthumb.squish{animation:gsquish .45s cubic-bezier(.3,.7,.3,1)}
+@keyframes gsquish{0%{scale:1 1}35%{scale:1.08 .9}70%{scale:.98 1.03}100%{scale:1 1}}
+@media (prefers-reduced-motion:reduce){.gthumb{transition:none}.gthumb.squish{animation:none}}
 </style>
 </head>
 <body>
@@ -2054,6 +2072,28 @@ function renderList() {
   renderMatch();
 }
 
+/* ---------- posuvný ukazatel přepínačů ---------- */
+function placeThumbs() {
+  document.querySelectorAll('.hseg, .seg.tog').forEach(g => {
+    let t = g.querySelector(':scope > .gthumb');
+    const on = g.querySelector(':scope > .on');
+    if (!t) { t = document.createElement('i'); t.className = 'gthumb noanim'; g.prepend(t); }
+    if (!on || !g.offsetParent) { t.style.opacity = 0; return; }
+    const x = on.offsetLeft, w = on.offsetWidth;
+    const moved = t._x !== undefined && t._x !== x;
+    if (t._x === undefined) t.classList.add('noanim');
+    t.style.opacity = 1; t.style.width = w + 'px'; t.style.transform = `translateX(${x}px)`;
+    if (moved) { t.classList.remove('squish'); void t.offsetWidth; t.classList.add('squish'); }
+    t._x = x;
+    if (t.classList.contains('noanim')) requestAnimationFrame(() => requestAnimationFrame(() => t.classList.remove('noanim')));
+  });
+}
+let thumbRaf = 0;
+const thumbMO = new MutationObserver(() => { if (!thumbRaf) thumbRaf = requestAnimationFrame(() => { thumbRaf = 0; placeThumbs(); }); });
+thumbMO.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden'] });
+addEventListener('resize', () => placeThumbs());
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeThumbs());
+
 /* ---------- fixtures (ceskyflorbal.cz) ---------- */
 // FBS Olomouc ženy – ČEZ Extraliga 2026/2027, stav k 18. 11. 2026: [kolo, datum, domácí, hosté, skóre, třetiny]
 const FIXTURES = [["1","NE, 13. 9.","FBS Olomouc","Tatran Střešovice","0:8","0:1 - 0:5 - 0:2"],["2","SO, 19. 9.","FbŠ Bohemians","FBS Olomouc","5:1","2:0 - 1:0 - 2:1"],["3","NE, 27. 9.","FBS Olomouc","GC System Bulldogs Brno","1:6","0:2 - 0:3 - 1:1"],["4","NE, 4. 10.","Crazy girls FBC Liberec","FBS Olomouc","5:8","1:4 - 0:2 - 4:2"],["5","NE, 11. 10.","FBS Olomouc","Prague Tigers Nehvizdy","2:3pn","1:1 - 0:1 - 1:0"],["6","SO, 17. 10.","FBC Intevo Třinec","FBS Olomouc","4:0","1:0 - 1:0 - 2:0"],["7","NE, 25. 10.","FBS Olomouc","1. SC TEMPISH Vítkovice","2:10","0:2 - 1:5 - 1:3"],["8","ST, 28. 10.","FBS Olomouc","FBC ČPP MPL STAVEBNINY OSTRAVA","2:8","1:3 - 0:4 - 1:1"],["9","NE, 1. 11.","FAT PIPE FLORBAL CHODOV","FBS Olomouc","6:3","2:1 - 1:2 - 3:0"],["10","NE, 22. 11.","FBS Olomouc","GMS Florbal Chomutov","",""],["11","NE, 29. 11.","K1 Florbal Brno Židenice","FBS Olomouc","",""],["12","NE, 6. 12.","FBS Olomouc","FbŠ Bohemians","",""],["13","SO, 12. 12.","GC System Bulldogs Brno","FBS Olomouc","",""],["14","NE, 20. 12.","FBS Olomouc","Crazy girls FBC Liberec","",""],["15","SO, 9. 1.","Prague Tigers Nehvizdy","FBS Olomouc","",""],["16","NE, 17. 1.","FBS Olomouc","FBC Intevo Třinec","",""],["17","SO, 23. 1.","1. SC TEMPISH Vítkovice","FBS Olomouc","",""],["18","SO, 30. 1.","FBC ČPP MPL STAVEBNINY OSTRAVA","FBS Olomouc","",""],["19","NE, 7. 2.","FBS Olomouc","FAT PIPE FLORBAL CHODOV","",""],["20","SO, 13. 2.","GMS Florbal Chomutov","FBS Olomouc","",""],["21","NE, 28. 2.","FBS Olomouc","K1 Florbal Brno Židenice","",""],["22","NE, 7. 3.","Tatran Střešovice","FBS Olomouc","",""]];
@@ -2370,7 +2410,7 @@ function renderMatch() {
     rows.push(h('label', { class: 'f full' }, m.periods.label, p));
   }
   if (m.res) {
-    const seg = h('div', { class: 'seg' }, [['home', 'Domácích'], ['away', 'Hostů']].map(([v, l]) => {
+    const seg = h('div', { class: 'seg tog' }, [['home', 'Domácích'], ['away', 'Hostů']].map(([v, l]) => {
       const b = h('button', { class: 'btn sm' + (state.persp === v ? ' on' : '') }, l);
       b.addEventListener('click', () => { state.persp = v; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); autoResult(); scheduleSave(); });
       return b;
