@@ -725,6 +725,19 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 .tile-alert[hidden]{display:none}
 .tile-alert:not([hidden]) ~ .tile-ico,.tile:has(.tile-alert:not([hidden])) .tile-ico{display:none}
 @keyframes alertPulse{0%,100%{box-shadow:0 0 0 3px rgba(255,59,48,.22),0 4px 12px rgba(255,59,48,.45)}50%{box-shadow:0 0 0 7px rgba(255,59,48,.08),0 4px 12px rgba(255,59,48,.45)}}
+
+/* vykřičník jako notifikační odznak */
+.tile{overflow:visible!important}
+.tile::before{inset:0!important;width:auto!important;height:auto!important;border-radius:inherit!important;filter:none!important;opacity:1!important;
+  background:radial-gradient(ellipse 70% 60% at 100% 100%,var(--tg),transparent 70%)!important}
+.tile[data-sec=muzi]{--tg:rgba(61,139,255,.28)}.tile[data-sec=zeny]{--tg:rgba(255,90,54,.26)}
+.tile:hover::before{opacity:1!important;filter:brightness(1.25)!important}
+.tile-alert{top:-7px!important;right:-7px!important;width:20px!important;height:20px!important;font-size:13px!important;
+  border:2px solid #0b0e14;box-shadow:0 3px 10px rgba(255,59,48,.45)!important;animation:notifPop .5s cubic-bezier(.3,1.6,.5,1) both .4s!important}
+.tile-alert::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid rgba(255,59,48,.6);animation:notifPing 2.4s ease-out infinite 1s;opacity:0}
+@keyframes notifPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes notifPing{0%{transform:scale(1);opacity:.7}70%,100%{transform:scale(2.1);opacity:0}}
+.tile:has(.tile-alert:not([hidden])) .tile-ico{display:block!important}
 </style>
 </head>
 <body>
