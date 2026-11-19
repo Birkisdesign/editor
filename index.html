@@ -755,6 +755,22 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 .tile-alert::after{inset:-1px!important;border-width:1.5px!important;border-color:rgba(255,90,80,.55)!important}
 .tile-alert[hidden]{display:none!important}
 .lock{background:rgba(5,7,11,.35)!important}
+
+/* animace otevření editoru z úvodní obrazovky */
+.home.launching .home-top,.home.launching .home-title,.home.launching .home-sub,.home.launching .home-note,.home.launching .home-foot{transition:opacity .35s ease,transform .45s cubic-bezier(.4,0,.2,1);opacity:0;transform:translateY(-24px)}
+.home.launching .tile:not(.chosen){transition:opacity .3s ease,transform .45s cubic-bezier(.4,0,.2,1);opacity:0;transform:scale(.92)}
+.home.launching .tile.chosen{animation:none!important;transition:transform .55s cubic-bezier(.65,0,.35,1),border-color .3s,box-shadow .4s;
+  transform:translate(var(--dx),var(--dy)) scale(1.18);border-color:rgba(255,255,255,.3);box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08) inset;z-index:5}
+.home.launching .tile.chosen::before{filter:brightness(1.6)!important}
+.home.out{animation:homeOut .55s cubic-bezier(.4,0,.2,1) forwards!important}
+@keyframes homeOut{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
+body.enter > header{animation:enterTop .6s cubic-bezier(.2,.8,.2,1) both .15s}
+body.enter aside{animation:enterRight .65s cubic-bezier(.2,.8,.2,1) both .22s}
+body.enter .stage .boards-row,body.enter .stage #empty{animation:enterStage .7s cubic-bezier(.2,.8,.2,1) both .1s}
+@keyframes enterTop{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes enterRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes enterStage{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.home.launching *{transition:none!important}body.enter *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2696,7 +2712,19 @@ function setSection(sec) {
   if (typeof renderFixtures === 'function') renderFixtures();
   if (typeof renderGallery === 'function') renderGallery();
 }
-document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => { setSection(t.dataset.sec); hideHome(); }));
+document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
+  const H = $('#home'); if (H.classList.contains('launching')) return;
+  setSection(t.dataset.sec);
+  const r = t.getBoundingClientRect();
+  t.style.setProperty('--dx', (innerWidth / 2 - (r.left + r.width / 2)) + 'px');
+  t.style.setProperty('--dy', (innerHeight / 2 - (r.top + r.height / 2)) + 'px');
+  t.classList.add('chosen'); H.classList.add('launching');
+  setTimeout(() => {
+    document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
+    hideHome();
+    setTimeout(() => { H.classList.remove('launching'); t.classList.remove('chosen'); document.body.classList.remove('enter'); }, 1100);
+  }, 420);
+}));
 $('#btnHome').addEventListener('click', showHome);
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
 $('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
