@@ -581,6 +581,28 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
     radial-gradient(circle at 42% 30%,rgba(160,190,255,.28) 0 1.1px,#07090e 1.8px 2.8px,transparent 3.3px) 3px 8px/23px 19px,
     radial-gradient(circle at 38% 33%,rgba(255,180,140,.22) 0 1.1px,#04060a 1.8px 2.8px,transparent 3.3px) 11px 2px/29px 21px,
     radial-gradient(circle at 40% 32%,rgba(215,220,235,.26) 0 1.2px,#06080c 1.9px 2.9px,transparent 3.4px) 8px 10px/19px 16px}
+
+/* více pater tribun až k hornímu okraji */
+.st-far{top:-760px!important;height:760px!important}
+.st-left{left:-760px!important;width:760px!important}
+.st-right{width:760px!important}
+.st-cl,.st-cr{height:760px!important;top:-760px!important;width:1520px!important}
+.st-cl{left:-760px!important}.st-cr{left:640px!important}
+.st-far,.st-cl,.st-cr{background:
+   repeating-linear-gradient(0deg,transparent 0 236px,rgba(3,5,9,.96) 236px 262px),
+   radial-gradient(circle,rgba(255,236,200,.5) 0 1.4px,transparent 2px) 0 241px/46px 262px repeat-x,
+   var(--dots),repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 1px,transparent 1px 13px),linear-gradient(0deg,#33405a,#1c2536 60%,#121826)!important}
+.st-left{background:
+   repeating-linear-gradient(270deg,transparent 0 236px,rgba(3,5,9,.96) 236px 262px),
+   var(--dots),repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 1px,transparent 1px 13px),linear-gradient(270deg,#33405a,#1c2536 60%,#121826)!important}
+.st-right{background:
+   repeating-linear-gradient(90deg,transparent 0 236px,rgba(3,5,9,.96) 236px 262px),
+   var(--dots),repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0 1px,transparent 1px 13px),linear-gradient(90deg,#33405a,#1c2536 60%,#121826)!important}
+.st-far::before,.st-cl::before,.st-cr::before{background:linear-gradient(0deg,transparent 30%,rgba(5,7,11,.55) 75%,rgba(5,7,11,.9))!important}
+.st-left::before{background:linear-gradient(90deg,rgba(5,7,11,.9),rgba(5,7,11,.55) 25%,transparent 70%)!important}
+.st-right::before{background:linear-gradient(270deg,rgba(5,7,11,.9),rgba(5,7,11,.55) 25%,transparent 70%)!important}
+.st3{opacity:.6!important}
+.home-in::before{content:"";position:absolute;z-index:-1;left:50%;top:38%;width:110%;height:90%;transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(5,7,11,.7),rgba(5,7,11,0) 65%);pointer-events:none}
 </style>
 </head>
 <body>
