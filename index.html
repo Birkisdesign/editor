@@ -526,6 +526,32 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 .crowd .cheer.c1{animation-delay:-.9s;animation-duration:3.1s}.crowd .cheer.c2{animation-delay:-1.7s;animation-duration:2.2s}
 @keyframes cheer{0%,100%{fill-opacity:.2}50%{fill-opacity:.65}}
 @media (prefers-reduced-motion:reduce){.crowd .cheer{animation:none}}
+
+/* ===== stadion: tribuny ve 3D ===== */
+.st3{position:absolute;display:block;transform-style:preserve-3d;pointer-events:none;border-radius:6px;
+  --dots:
+    radial-gradient(circle,rgba(150,170,210,.55) 0 2.3px,transparent 2.9px) 0 0/13px 12px,
+    radial-gradient(circle,rgba(205,145,115,.5) 0 2.3px,transparent 2.9px) 6px 5px/17px 14px,
+    radial-gradient(circle,rgba(90,156,255,.5) 0 2.1px,transparent 2.7px) 3px 8px/23px 19px,
+    radial-gradient(circle,rgba(255,122,74,.45) 0 2.1px,transparent 2.7px) 11px 2px/29px 21px,
+    radial-gradient(circle,rgba(185,190,205,.4) 0 2.2px,transparent 2.8px) 8px 10px/19px 16px;
+  background:var(--dots),repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 13px),linear-gradient(0deg,#121a28,#0a0f18);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);opacity:.55}
+.st3::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:radial-gradient(circle,rgba(255,255,255,.55) 0 1.8px,transparent 2.4px) 4px 3px/31px 23px,radial-gradient(circle,rgba(255,200,170,.5) 0 1.8px,transparent 2.4px) 15px 11px/37px 29px;
+  animation:crowdFlash 2.8s steps(2,end) infinite;opacity:.0}
+@keyframes crowdFlash{0%{opacity:0}30%{opacity:.35}60%{opacity:.1}100%{opacity:0}}
+.st3::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(0deg,transparent 40%,rgba(5,7,11,.75))}
+.st-far{left:-40px;width:1480px;top:-260px;height:250px;transform-origin:50% 100%;transform:rotateX(-58deg)}
+.st-near{left:-40px;width:1480px;top:710px;height:120px;transform-origin:50% 0;transform:rotateX(58deg);opacity:.3}
+.st-left{left:-250px;width:240px;top:-10px;height:720px;transform-origin:100% 50%;transform:rotateY(58deg)}
+.st-right{left:1410px;width:240px;top:-10px;height:720px;transform-origin:0 50%;transform:rotateY(-58deg)}
+.st-left::before{background:linear-gradient(90deg,rgba(5,7,11,.75),transparent 60%)}
+.st-right::before{background:linear-gradient(270deg,rgba(5,7,11,.75),transparent 60%)}
+.st-near::before{background:linear-gradient(180deg,transparent 30%,rgba(5,7,11,.8))}
+@media (prefers-reduced-motion:reduce){.st3::after{animation:none}}
+.plane{opacity:1!important}.plane > svg{opacity:.55}.home > .bgfx .plane > svg{opacity:.65}.plane .sweep{opacity:.6}
+.st-near{display:none!important}.st3{opacity:.42}
 </style>
 </head>
 <body>
@@ -598,7 +624,7 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 <rect x="95" y="300" width="40" height="100"/><rect x="1265" y="300" width="40" height="100"/>
 </g>
 <g class="players"><circle r="11" fill="#5a9cff"><animateMotion dur="18s" begin="0s" repeatCount="indefinite" path="M330,350 C420,260 520,300 600,250 C680,200 560,420 430,430 C360,436 300,410 330,350 Z"/></circle><circle r="11" fill="#5a9cff"><animateMotion dur="22s" begin="-4s" repeatCount="indefinite" path="M520,520 C620,560 760,500 820,420 C880,340 700,330 640,420 C600,480 480,480 520,520 Z"/></circle><circle r="11" fill="#5a9cff"><animateMotion dur="20s" begin="-9s" repeatCount="indefinite" path="M250,200 C350,160 460,180 480,260 C500,330 380,330 300,300 C230,270 200,230 250,200 Z"/></circle><circle r="11" fill="#5a9cff"><animateMotion dur="24s" begin="-6s" repeatCount="indefinite" path="M420,560 C500,620 620,600 660,540 C700,480 560,470 500,500 C440,530 360,510 420,560 Z"/></circle><circle r="11" fill="#5a9cff"><animateMotion dur="26s" begin="-13s" repeatCount="indefinite" path="M560,130 C660,110 760,150 760,220 C760,290 640,260 600,220 C560,180 470,150 560,130 Z"/></circle><circle r="11" fill="#ff7a4a"><animateMotion dur="19s" begin="-2s" repeatCount="indefinite" path="M1070,350 C980,440 880,400 800,450 C720,500 840,280 970,270 C1040,264 1100,290 1070,350 Z"/></circle><circle r="11" fill="#ff7a4a"><animateMotion dur="23s" begin="-7s" repeatCount="indefinite" path="M880,180 C780,140 640,200 580,280 C520,360 700,370 760,280 C800,220 920,220 880,180 Z"/></circle><circle r="11" fill="#ff7a4a"><animateMotion dur="21s" begin="-11s" repeatCount="indefinite" path="M1150,500 C1050,540 940,520 920,440 C900,370 1020,370 1100,400 C1170,430 1200,470 1150,500 Z"/></circle><circle r="11" fill="#ff7a4a"><animateMotion dur="25s" begin="-3s" repeatCount="indefinite" path="M980,560 C900,610 780,600 740,540 C700,480 840,470 900,500 C960,530 1040,510 980,560 Z"/></circle><circle r="11" fill="#ff7a4a"><animateMotion dur="27s" begin="-15s" repeatCount="indefinite" path="M840,130 C740,110 640,150 640,220 C640,290 760,260 800,220 C840,180 930,150 840,130 Z"/></circle><circle r="12" fill="#5a9cff" stroke="#0b0f16" stroke-opacity=".5" stroke-width="3"><animateMotion dur="7s" repeatCount="indefinite" path="M150,300 C175,330 175,370 150,400 C175,370 175,330 150,300 Z"/></circle><circle r="12" fill="#ff7a4a" stroke="#0b0f16" stroke-opacity=".5" stroke-width="3"><animateMotion dur="8s" begin="-3s" repeatCount="indefinite" path="M1250,400 C1225,370 1225,330 1250,300 C1225,330 1225,370 1250,400 Z"/></circle><g class="trail"><circle r="1.50" fill="#ffffff" fill-opacity="0.029"><animateMotion dur="9s" begin="-8.280s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="1.75" fill="#ffffff" fill-opacity="0.059"><animateMotion dur="9s" begin="-8.325s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="2.00" fill="#ffffff" fill-opacity="0.088"><animateMotion dur="9s" begin="-8.370s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="2.25" fill="#ffffff" fill-opacity="0.118"><animateMotion dur="9s" begin="-8.415s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="2.50" fill="#ffffff" fill-opacity="0.147"><animateMotion dur="9s" begin="-8.460s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="2.75" fill="#ffffff" fill-opacity="0.176"><animateMotion dur="9s" begin="-8.505s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="3.00" fill="#ffffff" fill-opacity="0.206"><animateMotion dur="9s" begin="-8.550s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="3.25" fill="#ffffff" fill-opacity="0.235"><animateMotion dur="9s" begin="-8.595s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="3.50" fill="#ffffff" fill-opacity="0.265"><animateMotion dur="9s" begin="-8.640s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="3.75" fill="#ffffff" fill-opacity="0.294"><animateMotion dur="9s" begin="-8.685s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="4.00" fill="#ffffff" fill-opacity="0.324"><animateMotion dur="9s" begin="-8.730s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="4.25" fill="#ffffff" fill-opacity="0.353"><animateMotion dur="9s" begin="-8.775s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="4.50" fill="#ffffff" fill-opacity="0.382"><animateMotion dur="9s" begin="-8.820s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="4.75" fill="#ffffff" fill-opacity="0.412"><animateMotion dur="9s" begin="-8.865s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="5.00" fill="#ffffff" fill-opacity="0.441"><animateMotion dur="9s" begin="-8.910s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle><circle r="5.25" fill="#ffffff" fill-opacity="0.471"><animateMotion dur="9s" begin="-8.955s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle></g><circle r="6" fill="#fff"><animateMotion dur="9s" begin="0s" repeatCount="indefinite" path="M420,330 C560,240 760,260 820,420 C860,520 640,560 560,470 C480,380 980,300 1040,360 C1100,420 620,620 420,330 Z"/></circle></g><g fill="#cfe1ff"><circle cx="700" cy="350" r="7"/><circle cx="300" cy="140" r="5"/><circle cx="300" cy="560" r="5"/><circle cx="1100" cy="140" r="5"/><circle cx="1100" cy="560" r="5"/></g>
-</svg><i class="sweep"></i></div></div><i class="floorglow"></i></div>
+</svg><i class="sweep"></i><i class="st3 st-far"></i><i class="st3 st-left"></i><i class="st3 st-right"></i><i class="st3 st-near"></i></div></div><i class="floorglow"></i></div>
     <div class="empty" id="empty">
       <div class="drop">
         <h1>Přetáhni sem PSD nebo SVG</h1>
@@ -2326,43 +2352,6 @@ function renderList() {
 
 
 
-
-/* ---------- tribuny s diváky (nenápadné) ---------- */
-(function buildCrowd() {
-  const NS = 'http://www.w3.org/2000/svg';
-  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const cols = ['#7f97c4', '#9aa6bb', '#c48a6e', '#6d7f9e', '#b7bfcc', '#8c7fb4', '#5a9cff', '#ff7a4a'];
-  const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'crowd');
-  const band = (x0, y0, x1, y1, rows, gap, horiz, cls) => {
-    const host = g; const g2 = document.createElementNS(NS, 'g'); g2.setAttribute('class', 'band ' + (cls || '')); host.append(g2);
-    const gg = g2;
-    const plate = document.createElementNS(NS, 'rect');
-    plate.setAttribute('x', Math.min(x0, x1) - 10); plate.setAttribute('y', Math.min(y0, y1) - 10);
-    plate.setAttribute('width', Math.abs(x1 - x0) + 20); plate.setAttribute('height', Math.abs(y1 - y0) + 20);
-    plate.setAttribute('rx', 14); plate.setAttribute('class', 'stand'); gg.append(plate);
-    for (let r = 0; r < rows; r++) {
-      const len = horiz ? Math.abs(x1 - x0) : Math.abs(y1 - y0);
-      for (let t = 0; t <= len; t += gap) {
-        if (rnd() < 0.07) continue;
-        const c = document.createElementNS(NS, 'circle');
-        const jx = (rnd() - .5) * 3, jy = (rnd() - .5) * 3;
-        const x = horiz ? Math.min(x0, x1) + t : x0 + (x1 > x0 ? 1 : -1) * r * gap;
-        const y = horiz ? y0 + (y1 > y0 ? 1 : -1) * r * gap : Math.min(y0, y1) + t;
-        c.setAttribute('cx', (x + jx).toFixed(1)); c.setAttribute('cy', (y + jy).toFixed(1));
-        c.setAttribute('r', (3.6 + rnd() * 1.6).toFixed(1));
-        c.setAttribute('fill', cols[(rnd() * cols.length) | 0]);
-        c.setAttribute('fill-opacity', (0.22 + rnd() * 0.3).toFixed(2));
-        if (rnd() < 0.12) c.setAttribute('class', 'cheer c' + ((rnd() * 3) | 0));
-        gg.append(c);
-      }
-    }
-  };
-  band(10, -40, 1390, -40 - 7 * 15, 8, 15, true);     // horní tribuna
-  band(10, 740, 1390, 740 + 7 * 15, 8, 15, true, 'near');     // spodní tribuna
-  band(-40, 40, -40 - 5 * 15, 660, 6, 15, false);     // levá
-  band(1440, 40, 1440 + 5 * 15, 660, 6, 15, false);   // pravá
-  document.querySelectorAll('.plane svg').forEach(svg => svg.insertBefore(g.cloneNode(true), svg.querySelector('rect')));
-})();
 
 /* ---------- úvodní obrazovka ---------- */
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
