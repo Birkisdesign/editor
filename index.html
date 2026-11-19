@@ -754,6 +754,7 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 .tile-alert svg{width:14px;height:14px;display:block}
 .tile-alert::after{inset:-1px!important;border-width:1.5px!important;border-color:rgba(255,90,80,.55)!important}
 .tile-alert[hidden]{display:none!important}
+.lock{background:rgba(5,7,11,.35)!important}
 </style>
 </head>
 <body>
@@ -2687,7 +2688,7 @@ function setSection(sec) {
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => { setSection(t.dataset.sec); hideHome(); }));
 $('#btnHome').addEventListener('click', showHome);
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
-$('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} $('#home').hidden = true; showLock(); });
+$('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
 $('#homeAdd').addEventListener('click', () => { $('#addForm').hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = ''; setTimeout(() => $('#addName').focus(), 50); });
 $('#addClose').addEventListener('click', () => { $('#addForm').hidden = true; $('#addForm').reset(); });
 $('#addForm').addEventListener('submit', async e => {
@@ -2730,6 +2731,7 @@ function isUnlocked() {
   return false;
 }
 function showLock() {
+  if (typeof showHome === 'function') showHome();
   const L = $('#lock'); L.hidden = false; L.classList.remove('out');
   const setup = !LOCK.hash;
   $('#lockSub').textContent = setup ? 'Vytvoř si heslo k editoru' : 'Zadej heslo pro vstup do editoru';
@@ -2765,7 +2767,7 @@ $('#lockForm').addEventListener('submit', async e => {
   curUser = found;
   try { sessionStorage.setItem('ge-unlock', lockToken());
     if ($('#lockRem').checked) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); } catch (e2) {}
-  $('#lockPass').value = ''; hideLock(); showHome();
+  $('#lockPass').value = ''; hideLock(); showHome(); renderHomeMatches && renderHomeMatches();
 });
 $('#lockCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lockCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
 $('#lockSkip').addEventListener('click', hideLock);
