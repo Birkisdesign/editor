@@ -3227,8 +3227,8 @@ function renderMatch() {
     rows.push(h('label', { class: 'f full' }, m.periods.label, p));
   }
   if (m.pn) {
-    const cur = () => m.pn.el.style.display === 'none' ? 'none' : (norm(getText(m.pn)) === 'sn' ? 'sn' : 'pn');
-    const seg = h('div', { class: 'seg tog ot-seg' }, [['none', 'Normální čas'], ['pn', 'Prodloužení'], ['sn', 'Nájezdy']].map(([v, l]) => {
+    const cur = () => m.pn.el.style.display === 'none' ? 'none' : (norm(getText(m.pn)) === 'sn' ? 'sn' : 'pp');
+    const seg = h('div', { class: 'seg tog ot-seg' }, [['none', 'Normální čas'], ['pp', 'Prodloužení'], ['sn', 'Nájezdy']].map(([v, l]) => {
       const b = h('button', { class: 'btn sm', 'data-v': v }, l);
       b.addEventListener('click', () => {
         if (v === 'none') setVisible(m.pn, false); else { if (norm(getText(m.pn)) !== v) setItemText(m.pn, v); setVisible(m.pn, true); }
