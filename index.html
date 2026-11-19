@@ -713,6 +713,18 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 .tile-next{position:relative;margin-top:6px;font-size:14px;font-weight:500;color:#aeb8c9}
 .home-note{margin-top:18px;font-size:12px;color:#6f7a8e;animation:cardIn .7s ease both .4s}
 @media (max-width:760px){.home-tiles{grid-template-columns:1fr!important}.tile{min-height:240px!important}}
+
+.tile{min-height:260px!important;justify-content:flex-start!important}
+.tile-match{position:relative;display:flex;flex-direction:column;gap:4px;margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);width:100%;font-family:"Barlow Condensed",system-ui,sans-serif}
+.tile-match small{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8d97aa}
+.tile-match strong{font-size:22px;font-weight:700;line-height:1.15;color:#fff}
+.tile-match span{font-size:15px;font-weight:500;color:#aeb8c9}
+.tile-match.today small{color:#ff8a7a}
+.tile-alert{position:absolute;top:18px;right:20px;z-index:2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:#ff3b30;color:#fff;font:800 16px/1 "Barlow Condensed",system-ui,sans-serif;box-shadow:0 0 0 3px rgba(255,59,48,.22),0 4px 12px rgba(255,59,48,.45);animation:alertPulse 2s ease-in-out infinite}
+.tile-alert[hidden]{display:none}
+.tile-alert:not([hidden]) ~ .tile-ico,.tile:has(.tile-alert:not([hidden])) .tile-ico{display:none}
+@keyframes alertPulse{0%,100%{box-shadow:0 0 0 3px rgba(255,59,48,.22),0 4px 12px rgba(255,59,48,.45)}50%{box-shadow:0 0 0 7px rgba(255,59,48,.08),0 4px 12px rgba(255,59,48,.45)}}
 </style>
 </head>
 <body>
@@ -722,11 +734,10 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
     <h1 class="home-title">Vítej<span id="homeName"></span></h1>
     <p class="home-sub">Vyber editor, se kterým chceš pracovat</p>
     <div class="home-tiles">
-      <button class="tile" data-sec="muzi"><span class="tile-ico">♂</span><span class="tile-league">FBS Olomouc · 1. liga mužů 2026/27</span><span class="tile-stats"><i><em>11.</em>místo</i><i><em>3-2-2-6</em>bilance</i><i><em>63:71</em>skóre</i></span><span class="tile-next">Další zápas: NE 22. 11. · BUTCHIS – FBS Olomouc · 17:00</span><span class="tile-spacer"></span><b>Editor</b><span class="tile-name">Muži</span></button>
-      <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><span class="tile-league">FBS Olomouc · ČEZ Extraliga 2026/27</span><span class="tile-stats"><i><em>11.</em>místo</i><i><em>1-0-1-7</em>bilance</i><i><em>19:55</em>skóre</i></span><span class="tile-next">Další zápas: NE 22. 11. · FBS Olomouc – Chomutov · 16:00</span><span class="tile-spacer"></span><b>Editor</b><span class="tile-name">Ženy</span></button>
-      
+      <button class="tile" data-sec="muzi"><span class="tile-ico">♂</span><span class="tile-alert" hidden title="Dnes se hraje">!</span><b>Editor</b><span class="tile-name">Muži</span><span class="tile-match" data-team="muzi"></span></button>
+      <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><span class="tile-alert" hidden title="Dnes se hraje">!</span><b>Editor</b><span class="tile-name">Ženy</span><span class="tile-match" data-team="zeny"></span></button>
     </div>
-    <p class="home-note">Údaje z ceskyflorbal.cz k 19. 11. 2026</p>
+    <p class="home-note">Rozpis zápasů z ceskyflorbal.cz</p>
     <div class="home-foot"><button class="btn sm" id="homeAdd">＋ Přidat účastníka</button><button class="btn sm" id="homeAnim" title="Zapnout / vypnout animaci pozadí">◐ Animace</button><button class="btn sm" id="homeLock" hidden>🔒 Zamknout</button></div>
   </div>
   <form class="lock-card home-add" id="addForm" hidden autocomplete="off">
@@ -2599,6 +2610,33 @@ function renderList() {
   apply(off);
   $('#btnAnim').addEventListener('click', () => { off = !root.classList.contains('no-bg-anim'); apply(off); try { localStorage.setItem('ge-bganim', off ? '0' : '1'); } catch (e) {} toast(off ? 'Animace pozadí vypnutá.' : 'Animace pozadí zapnutá.'); });
 })();
+
+
+/* ---------- následující zápas na dlaždicích (podle dnešního data) ---------- */
+const HOME_FIX = {"muzi":[["14","NE, 22. 11.","BUTCHIS","FBS Olomouc","17:00"],["15","NE, 29. 11.","FBS Olomouc","TJ Sokol Královské Vinohrady","18:00"],["16","SO, 5. 12.","TJ Znojmo LAUFEN CZ","FBS Olomouc","18:00"],["17","NE, 13. 12.","Goldea PANTHERS OTROKOVICE","FBS Olomouc","17:30"],["18","NE, 20. 12.","FBS Olomouc","FBC Vikings Kopřivnice",""],["19","NE, 10. 1.","Wizards SO DDM Praha 10","FBS Olomouc",""],["20","NE, 17. 1.","FBS Olomouc","FBŠ SLAVIA Fat Pipe Plzeň",""],["21","SO, 23. 1.","Asper Šumperk","FBS Olomouc",""],["22","NE, 31. 1.","BLACK ANGELS","FBS Olomouc",""],["23","NE, 7. 2.","ASK Orka Stará Boleslav","FBS Olomouc",""],["24","NE, 14. 2.","FBS Olomouc","Zlín Lions",""],["25","SO, 20. 2.","Torpedo Havířov","FBS Olomouc",""],["26","SO, 27. 2.","FBS Olomouc","Florbal Respect Hradec Králové",""]],
+"zeny":[["10","NE, 22. 11.","FBS Olomouc","GMS Florbal Chomutov","16:00"],["11","NE, 29. 11.","K1 Florbal Brno Židenice","FBS Olomouc","17:00"],["12","NE, 6. 12.","FBS Olomouc","FbŠ Bohemians","14:30"],["13","SO, 12. 12.","GC System Bulldogs Brno","FBS Olomouc","16:30"],["14","NE, 20. 12.","FBS Olomouc","Crazy girls FBC Liberec",""],["15","SO, 9. 1.","Prague Tigers Nehvizdy","FBS Olomouc",""],["16","NE, 17. 1.","FBS Olomouc","FBC Intevo Třinec",""],["17","SO, 23. 1.","1. SC TEMPISH Vítkovice","FBS Olomouc",""],["18","SO, 30. 1.","FBC ČPP MPL STAVEBNINY OSTRAVA","FBS Olomouc",""],["19","NE, 7. 2.","FBS Olomouc","FAT PIPE FLORBAL CHODOV",""],["20","SO, 13. 2.","GMS Florbal Chomutov","FBS Olomouc",""],["21","NE, 28. 2.","FBS Olomouc","K1 Florbal Brno Židenice",""],["22","NE, 7. 3.","Tatran Střešovice","FBS Olomouc",""]]};
+function fixDate(d) { const m = d.match(/(\d+)\.\s*(\d+)\./); if (!m) return null; const mon = +m[2]; return new Date(mon >= 8 ? 2026 : 2027, mon - 1, +m[1]); }
+const DOW = { PO: 'pondělí', ÚT: 'úterý', ST: 'středa', ČT: 'čtvrtek', PÁ: 'pátek', SO: 'sobota', NE: 'neděle' };
+function renderHomeMatches() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  document.querySelectorAll('.tile-match').forEach(el => {
+    const list = HOME_FIX[el.dataset.team] || [];
+    const next = list.find(f => { const d = fixDate(f[1]); return d && d >= today; });
+    const alert = el.closest('.tile').querySelector('.tile-alert');
+    el.innerHTML = ''; el.classList.remove('today'); alert.hidden = true;
+    if (!next) { el.append(h('small', {}, 'Další zápas'), h('span', {}, 'Sezóna je u konce')); return; }
+    const [r, d, hm, aw, tm] = next; const dd = fixDate(d);
+    const isToday = dd.getTime() === today.getTime();
+    const tomorrow = dd.getTime() === today.getTime() + 864e5;
+    const day = d.replace(/^(\S+),\s*/, (m0, w) => (DOW[w] || w) + ' ');
+    el.classList.toggle('today', isToday); alert.hidden = !isToday;
+    el.append(h('small', {}, isToday ? 'Dnes se hraje' : tomorrow ? 'Zítra' : 'Další zápas'),
+      h('strong', {}, `${hm} – ${aw}`),
+      h('span', {}, `${r}. kolo · ${day}${tm ? ' · ' + tm : ''}`));
+  });
+}
+renderHomeMatches();
+setInterval(renderHomeMatches, 60 * 1000);
 
 /* ---------- úvodní obrazovka ---------- */
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
