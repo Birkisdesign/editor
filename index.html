@@ -690,6 +690,18 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
    linear-gradient(0deg,#121823,#0b0f17 60%,#06080d)!important}
 .st-left{background:linear-gradient(90deg,#05070b,rgba(5,7,11,.6) 25%,transparent 70%),repeating-linear-gradient(270deg,transparent 0 236px,#04060a 236px 262px),var(--crowd,none) 0 0/240px 240px,linear-gradient(270deg,#121823,#0b0f17 60%,#06080d)!important}
 .st-right{background:linear-gradient(270deg,#05070b,rgba(5,7,11,.6) 25%,transparent 70%),repeating-linear-gradient(90deg,transparent 0 236px,#04060a 236px 262px),var(--crowd,none) 0 0/240px 240px,linear-gradient(90deg,#121823,#0b0f17 60%,#06080d)!important}
+
+/* přirozená světla ze stran / rohů */
+.orb{border-radius:0!important;filter:none!important;mix-blend-mode:normal!important}
+.o1{left:-55vw!important;top:-60vh!important;right:auto!important;bottom:auto!important;width:120vw!important;height:120vh!important;
+  background:radial-gradient(closest-side,rgba(64,128,255,.30),rgba(64,128,255,.14) 35%,rgba(64,128,255,.05) 60%,transparent 100%)!important;
+  animation:glowA 38s ease-in-out infinite alternate!important}
+.o2{right:-55vw!important;bottom:-60vh!important;left:auto!important;top:auto!important;width:120vw!important;height:120vh!important;
+  background:radial-gradient(closest-side,rgba(255,112,64,.24),rgba(255,112,64,.11) 35%,rgba(255,112,64,.04) 60%,transparent 100%)!important;
+  animation:glowB 44s ease-in-out infinite alternate!important}
+@keyframes glowA{0%{transform:translate(0,0) scale(1);opacity:.85}50%{transform:translate(4vw,3vh) scale(1.06);opacity:1}100%{transform:translate(1vw,7vh) scale(.97);opacity:.9}}
+@keyframes glowB{0%{transform:translate(0,0) scale(1);opacity:.9}50%{transform:translate(-4vw,-2vh) scale(1.05);opacity:1}100%{transform:translate(-1vw,-6vh) scale(.98);opacity:.85}}
+.home > .bgfx .o1,.home > .bgfx .o2{position:absolute}
 </style>
 </head>
 <body>
