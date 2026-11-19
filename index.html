@@ -1354,9 +1354,10 @@ function subD(s, dx, dy) {
   return d;
 }
 const median = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
-async function glyphSets(doc) {
+let extraGlyphDocs = [];
+async function glyphSets(doc0) {
   const sets = [];
-  for (const L of doc.layers) {
+  for (const [L, doc] of [doc0, ...extraGlyphDocs].flatMap(D => D.layers.map(L => [L, D]))) {
     if (L.text || L.section || !(L.info.vsms || L.info.vmsk)) continue;
     const chars = [...(L.name || '').replace(/\s+/g, '')];
     if (chars.length < 2) continue;
@@ -1729,7 +1730,7 @@ async function toBoards(doc, progress = () => {}) {
   return out;
 }
 
-return { open, toBoards, layerCanvas, effects, parseEngine, composeGlyph };
+return { open, toBoards, layerCanvas, effects, parseEngine, composeGlyph, setExtraGlyphDocs: a => { extraGlyphDocs = a || []; } };
 })();
 </script>
 <script>
@@ -2746,8 +2747,7 @@ function setSection(sec) {
 /* ---------- grafiky (šablony) ---------- */
 const TEMPLATES = {
   zeny: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-zeny.json' }],
-  muzi: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-muzi.json' },
-         { id: 'fulltime-juniori', name: 'Fulltime junioři', file: 'templates/fulltime-juniori.json' }]
+  muzi: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-muzi.json' }]
 };
 function tplList(sec) { return TEMPLATES[sec] || []; }
 function renderTplPick(sec) {
