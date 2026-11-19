@@ -2049,6 +2049,25 @@ async function findMatchFolder(i) {
   const dateRe = new RegExp(`(^|[^0-9])0?${day}\\s*\\.\\s*0?${mon}\\s*\\.`);
   const anyRound = /\d+\s*\.\s*kolo/i;
   const cands = [];
+  // Olomouc venku: ve složce domácího týmu hledej složku, která má v názvu „Olomouc“
+  if (hm !== 'FBS Olomouc') {
+    const oc = [];
+    async function walkO(id, path, depth) {
+      let kids; try { kids = await gasList(id, false); } catch (e) { return; }
+      const deeper = [];
+      for (const k of kids) {
+        if (!k.dir) continue;
+        const p = path + ' / ' + k.name;
+        if (/olomouc/.test(norm(k.name))) oc.push({ ...k, path: p });
+        else if (depth > 0) deeper.push(walkO(k.id, p, depth - 1));
+      }
+      await Promise.all(deeper);
+    }
+    await walkO(team.id, team.name, 3);
+    if (!oc.length) return { err: `Ve složce „${team.name}“ zatím není složka s „Olomouc“ v názvu.` };
+    oc.sort((a, b) => ((roundRe.test(b.name) || (day && dateRe.test(b.name))) ? 1 : 0) - ((roundRe.test(a.name) || (day && dateRe.test(a.name))) ? 1 : 0));
+    return oc[0];
+  }
   async function walk(id, path, depth) {
     let kids; try { kids = await gasList(id, false); } catch (e) { return; }
     const deeper = [];
