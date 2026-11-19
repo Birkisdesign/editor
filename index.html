@@ -2596,7 +2596,8 @@ $('#foldHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key
 try { if (localStorage.getItem('ge-fold') === '0') setTimeout(() => setFold(false)); } catch (e) {}
 function renderList() {
   list.innerHTML = '';
-  const items = state.svg ? orderedItems() : [];
+  let items = state.svg ? orderedItems() : [];
+  if (state.svg) { const mi = matchItems(); if (mi.home && mi.away) { const skip = new Set(Object.values(mi).filter(Boolean)); items = items.filter(i => !skip.has(i)); } }
   $('#count').textContent = items.length || '';
   $('#noLayers').hidden = !!items.length;
   if (state.svg && !items.length) { $('#noLayers').hidden = false; $('#noLayers').textContent = 'Žádné upravitelné texty ani obrázky.'; }
@@ -2955,8 +2956,7 @@ function renderFixtures() {
     const on = list.querySelector('.on') || [...list.children].find(x => !x.classList.contains('past')); if (on) on.scrollIntoView({ block: 'center' });
   });
   const sel = h('div', { class: 'fix-wrap' }, btn, list);
-  box.append(h('h2', {}, 'Zápasy', h('span', {}, 'ČEZ Extraliga 26/27')), h('div', { class: 'card fix-card' }, sel,
-    h('p', { class: 'small' }, 'FBS Olomouc ženy. Podle zápasu se nastaví loga, skóre a třetiny se vynulují.')));
+  box.append(h('h2', {}, 'Zápasy', h('span', {}, 'ČEZ Extraliga 26/27')), h('div', { class: 'card fix-card' }, sel));
 }
 async function applyFixture(i) {
   let [r, d, hm, aw, sc, per] = FIXTURES[i];
@@ -3226,29 +3226,24 @@ function renderMatch() {
     matchRefs.p = p;
     rows.push(h('label', { class: 'f full' }, m.periods.label, p));
   }
-  if (m.res) {
-    const seg = h('div', { class: 'seg tog' }, [['home', 'Domácích'], ['away', 'Hostů']].map(([v, l]) => {
-      const b = h('button', { class: 'btn sm' + (state.persp === v ? ' on' : '') }, l);
-      b.addEventListener('click', () => { state.persp = v; seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); autoResult(); scheduleSave(); });
-      return b;
-    }));
-    matchRefs.resTxt = h('b', { class: 'res-txt' }, getText(m.res));
-    rows.push(h('div', { class: 'f full' }, h('span', {}, 'Výsledek se doplní sám z pohledu:'), seg, h('span', { class: 'small' }, 'Teď: ', matchRefs.resTxt)));
-  }
   if (m.pn) {
     const cb = h('input', { type: 'checkbox' }); cb.checked = m.pn.el.style.display !== 'none';
     cb.addEventListener('change', () => setVisible(m.pn, cb.checked));
     matchRefs.pn = cb;
-    rows.push(h('label', { class: 'chk-row' }, cb, ` Zobrazit „${getText(m.pn)}“ (po nájezdech / prodloužení)`));
+    rows.push(h('label', { class: 'chk-row' }, cb, ` Po prodloužení / nájezdech („${getText(m.pn)}“)`));
   }
-  box.append(h('h2', {}, 'Zápas', h('span', {}, state.boards && state.boards.length > 1 && state.sync ? 'mění všechna plátna' : '')), h('div', { class: 'match card' }, rows));
+  box.append(h('h2', {}, 'Zápas'), h('div', { class: 'match card' }, rows));
+}
+function olomoucSide(it, name) {
+  if (!matchRefs || !/olomouc/.test(norm(name))) return;
+  const side = it === matchRefs.m.logoH ? 'home' : it === matchRefs.m.logoA ? 'away' : null;
+  if (side) { state.persp = side; autoResult(); scheduleSave(); }
 }
 function autoResult() {
   if (!matchRefs || !matchRefs.m.res) return;
   const { m } = matchRefs;
   const txt = resultFor(parseInt(getText(m.home), 10) || 0, parseInt(getText(m.away), 10) || 0, state.persp);
   if (getText(m.res) !== txt) setItemText(m.res, txt);
-  if (matchRefs.resTxt) matchRefs.resTxt.textContent = txt;
 }
 function renderMatchValues() {
   if (!matchRefs) return;
@@ -3256,7 +3251,6 @@ function renderMatchValues() {
   if (document.activeElement !== H.inp) H.inp.value = parseInt(getText(m.home), 10) || 0;
   if (document.activeElement !== A.inp) A.inp.value = parseInt(getText(m.away), 10) || 0;
   if (matchRefs.p && document.activeElement !== matchRefs.p) matchRefs.p.value = getText(m.periods);
-  if (matchRefs.resTxt && m.res) matchRefs.resTxt.textContent = getText(m.res);
   if (matchRefs.pn) matchRefs.pn.checked = m.pn.el.style.display !== 'none';
   [[m.logoH], [m.logoA]].forEach(([it]) => { if (it) { const img = $('#match').querySelectorAll('.m-logo img')[it === m.logoH ? 0 : 1]; if (img) img.src = getHref(it.el); } });
 }
@@ -3337,7 +3331,7 @@ async function openLibrary(it) {
     }
   };
   files.addEventListener('change', async () => { const n = await addLogoFiles([...files.files]); files.value = ''; cat = 'Moje'; drawChips(); draw(); if (n) toast(`Přidáno log: ${n}`); });
-  const use = async (data, name) => { if (!it) return; applyImageData(it, data); renderMatchValues(); close(); toast(`Použito logo „${name}“.`); };
+  const use = async (data, name) => { if (!it) return; applyImageData(it, data); olomoucSide(it, name); renderMatchValues(); close(); toast(`Použito logo „${name}“.`); };
   function draw() {
     grid.innerHTML = '';
     const q = norm(search.value);
