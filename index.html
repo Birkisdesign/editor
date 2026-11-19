@@ -2746,7 +2746,8 @@ function setSection(sec) {
 /* ---------- grafiky (šablony) ---------- */
 const TEMPLATES = {
   zeny: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-zeny.json' }],
-  muzi: []
+  muzi: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-muzi.json' },
+         { id: 'fulltime-juniori', name: 'Fulltime junioři', file: 'templates/fulltime-juniori.json' }]
 };
 function tplList(sec) { return TEMPLATES[sec] || []; }
 function renderTplPick(sec) {
