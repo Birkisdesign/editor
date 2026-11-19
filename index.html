@@ -801,6 +801,18 @@ header .brand .bmark:active{transform:scale(.95)}
 
 header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;
   border:0!important;padding:0 0 .08em!important;border-radius:0!important;font-family:"Barlow Condensed",system-ui,sans-serif!important;font-weight:800!important;font-size:22px!important;letter-spacing:.04em!important;text-transform:uppercase;line-height:1.15}
+
+.tpl-pick{position:relative;display:inline-flex;align-items:center;margin-left:14px}
+.tpl-pick select{appearance:none;-webkit-appearance:none;font:600 15px "Barlow Condensed",system-ui,sans-serif;letter-spacing:.03em;color:#eef3ff;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:7px 34px 7px 16px;cursor:pointer;
+  backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);box-shadow:inset 0 1px 1px rgba(255,255,255,.12)}
+.tpl-pick::after{content:"";position:absolute;right:14px;top:50%;width:7px;height:7px;border:solid #c9dbff;border-width:0 1.6px 1.6px 0;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.tpl-pick select option{background:#141924;color:#eef3ff}
+.tpl-pick[hidden]{display:none!important}
+.tpl-empty{text-align:center;padding:40px 20px}
+.tpl-empty h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-size:30px;letter-spacing:.02em;margin:0 0 8px}
+.tpl-empty p{color:#9aa6bd;margin:0}
+.empty .tips{display:none!important}
 </style>
 </head>
 <body>
@@ -855,7 +867,7 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
 
 <div class="app">
   <header>
-    <div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span> <em class="sec-badge" id="secBadge" hidden></em> <small id="docname"></small></div>
+    <div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span> <em class="sec-badge" id="secBadge" hidden></em><label class="tpl-pick" id="tplGroup" hidden><select id="tplSel" title="Vybrat grafiku"></select></label> <small id="docname"></small></div>
     <button class="btn icon" id="btnHome" title="Domů">⌂</button>
     <div class="hgroup" id="viewGroup" hidden><div class="hseg"><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button></div></div>
     <div class="hgroup" id="boardGroup" hidden><div class="hseg" id="board"></div></div>
@@ -887,22 +899,7 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
 <g fill="#cfe1ff"><circle cx="700" cy="350" r="7"/><circle cx="300" cy="140" r="5"/><circle cx="300" cy="560" r="5"/><circle cx="1100" cy="140" r="5"/><circle cx="1100" cy="560" r="5"/></g>
 </svg><canvas class="pl-canvas" width="1050" height="525"></canvas><i class="st3 st-far"></i><i class="st3 st-left"></i><i class="st3 st-right"></i><i class="st3 st-near"></i><i class="st3 st-cs" style="--a:-15deg;--x:0px"></i><i class="st3 st-cs" style="--a:15deg;--x:1400px"></i><i class="st3 st-cs" style="--a:-45deg;--x:0px"></i><i class="st3 st-cs" style="--a:45deg;--x:1400px"></i><i class="st3 st-cs" style="--a:-75deg;--x:0px"></i><i class="st3 st-cs" style="--a:75deg;--x:1400px"></i></div></div><i class="floorglow"></i></div>
     <div class="empty" id="empty">
-      <div class="drop">
-        <h1>Přetáhni sem PSD nebo SVG</h1>
-        <p>Texty, skóre a fotky pak upravíš v panelu vpravo nebo kliknutím přímo do grafiky.<br>SVG kód můžeš sem taky jen vložit (Cmd/Ctrl+V).</p>
-        <button class="btn primary" id="btnOpen2">Vybrat soubor</button>
-        <button class="btn" id="btnDemo">Vyzkoušet ukázku</button>
-      </div>
-      <div class="tips">
-        <b>Jak připravit grafiku ve Photoshopu</b>
-        <ol>
-          <li>Nejjednodušší je nahrát rovnou <b>.psd</b> soubor. Texty zůstanou upravitelné, chytré objekty (fotky, loga) půjdou vyměnit.</li>
-          <li>Pojmenuj vrstvy srozumitelně (např. <i>skore_domaci</i>, <i>fotka</i>) – jména se tu zobrazí.</li>
-          <li>Nový Photoshop už SVG neexportuje. Ulož grafiku jako PSD, otevři ji zdarma na <i>photopea.com</i> a dej <i>File → Export as → SVG</i> (texty nerasterizuj). Nebo ve Photoshopu označ vrstvy, klikni pravým → <i>Kopírovat SVG</i> a vlož sem.</li>
-          <li>Texty nech jako text, ne jako křivky, a obrázky vlož přímo do souboru.</li>
-          <li>Písmo z Adobe Fonts dostaneš do editoru tak, že do PSD přidáš skrytou vrstvu se všemi potřebnými znaky převedenou na tvary.</li>
-        </ol>
-      </div>
+      <div class="tpl-empty"><h1 id="tplEmptyH">Načítám grafiku…</h1><p id="tplEmptyP"></p></div>
     </div>
     <button class="nav-arrow prev" id="navPrev" title="Předchozí plátno" aria-label="Předchozí plátno" hidden>‹</button>
     <button class="nav-arrow next" id="navNext" title="Další plátno" aria-label="Další plátno" hidden>›</button>
@@ -1841,14 +1838,13 @@ function loadSVG(str, opts = {}) {
   const ext = state.items.filter(i => i.type === 'image' && !/^data:/.test(getHref(i.el)));
   if (ext.length) toast(`Některé obrázky (${ext.length}) jsou jen odkazy na soubory. Ve Photoshopu exportuj s vloženými obrázky.`);
   else if (!state.items.length) toast('V SVG nejsou žádné texty ani obrázky. Texty byly nejspíš převedeny na křivky.');
-  else if (opts.restored) toast('Pokračuješ tam, kde jsi skončil.');
   scheduleSave();
   return true;
 }
 function closeDoc() {
   if (state.svg) state.svg.remove();
   Object.assign(state, { svg: null, items: [], selected: null, original: '' });
-  list.innerHTML = ''; $('#count').textContent = ''; $('#noLayers').hidden = false; $('#docname').textContent = '';
+  list.innerHTML = ''; $('#match').innerHTML = ''; $('#photoBox').innerHTML = ''; $('#count').textContent = ''; $('#noLayers').hidden = false; $('#docname').textContent = '';
   overlay.hidden = true; boardsRow.hidden = true; empty.hidden = false; document.body.classList.remove('loaded');
   idb.del('doc'); state.boards = null; renderBoards();
   renderFonts();
@@ -2747,8 +2743,56 @@ function setSection(sec) {
   if (typeof renderFixtures === 'function') renderFixtures();
   if (typeof renderGallery === 'function') renderGallery();
 }
+/* ---------- grafiky (šablony) ---------- */
+const TEMPLATES = {
+  zeny: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-zeny.json' }],
+  muzi: []
+};
+function tplList(sec) { return TEMPLATES[sec] || []; }
+function renderTplPick(sec) {
+  const L = tplList(sec), sel = $('#tplSel');
+  sel.innerHTML = ''; L.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; sel.append(o); });
+  if (state.tpl && state.tpl.startsWith(sec + '/')) sel.value = state.tpl.split('/')[1];
+  $('#tplGroup').hidden = L.length < 2;
+}
+async function loadTemplate(sec, id) {
+  const t = tplList(sec).find(x => x.id === id) || tplList(sec)[0];
+  if (!t) {
+    if (state.svg) closeDoc(); state.tpl = null;
+    $('#tplEmptyH').textContent = 'Zatím tu není žádná grafika';
+    $('#tplEmptyP').textContent = 'Pro ' + (sec === 'muzi' ? 'muže' : 'tuhle sekci') + ' ještě nemám nahranou šablonu.';
+    return;
+  }
+  $('#tplEmptyH').textContent = 'Načítám grafiku…'; $('#tplEmptyP').textContent = '';
+  busy(true, 'Načítám grafiku ' + t.name + '…', 0.2);
+  try {
+    const r = await fetch(t.file, { cache: 'no-cache' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json(); busy(true, 'Připravuji plátna…', 0.8);
+    state.persp = null;
+    state.boards = d.boards.map(b => ({ name: b.name, w: b.w, h: b.h, svg: b.svg, original: b.svg }));
+    state.boardIdx = 0; state.tpl = sec + '/' + t.id;
+    try { localStorage.setItem('ge-tpl-' + sec, t.id); } catch (e) {}
+    loadSVG(state.boards[0].svg, { name: t.name, keepBoards: true });
+    renderBoards(); await checkFonts(); busy(false); saveNow();
+  } catch (e) {
+    console.error(e); busy(false);
+    $('#tplEmptyH').textContent = 'Grafiku se nepodařilo načíst'; $('#tplEmptyP').textContent = String(e && e.message || e);
+  }
+  renderTplPick(sec);
+}
+function ensureTemplate(sec) {
+  renderTplPick(sec);
+  if (state.svg && state.tpl && state.tpl.startsWith(sec + '/')) return;
+  let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
+  loadTemplate(sec, id);
+}
+$('#tplSel').addEventListener('change', async e => {
+  const sec = state.section, id = e.target.value;
+  if (state.tpl === sec + '/' + id) return;
+  loadTemplate(sec, id);
+});
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
-  setSection(t.dataset.sec);
+  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec);
   document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
   hideHome();
   setTimeout(() => document.body.classList.remove('enter'), 700);
@@ -3435,7 +3479,7 @@ const idb = {
 function snapshot() {
   flushSync();
   const cur = exportString(false);
-  if (state.boards) { state.boards[state.boardIdx].svg = cur; return { name: state.name, boards: state.boards.map(({ _img, ...b }) => b), idx: state.boardIdx, persp: state.persp }; }
+  if (state.boards) { state.boards[state.boardIdx].svg = cur; return { name: state.name, tpl: state.tpl, boards: state.boards.map(({ _img, ...b }) => b), idx: state.boardIdx, persp: state.persp }; }
   return { name: state.name, svg: cur, original: state.original, persp: state.persp };
 }
 let saveT;
@@ -3511,9 +3555,9 @@ function openFile(f) {
 }
 if (/birkis\.cz$/.test(location.hostname)) { $('#btnLogout').href = '/cdn-cgi/access/logout'; $('#btnLogout').hidden = false; }
 
-$('#btnOpen2').onclick = () => $('#fileSvg').click();
+if ($('#btnOpen2')) $('#btnOpen2').onclick = () => $('#fileSvg').click();
 $('#fileSvg').onchange = e => { openFile(e.target.files[0]); e.target.value = ''; };
-$('#btnDemo').onclick = () => { state.boards = null; renderBoards(); loadSVG(demoSVG(), { name: 'ukazka' }); };
+if ($('#btnDemo')) $('#btnDemo').onclick = () => { state.boards = null; renderBoards(); loadSVG(demoSVG(), { name: 'ukazka' }); };
 function ask(msg, okLabel) {
   return new Promise(res => {
     const bg = h('div', { class: 'modal-bg' });
@@ -3534,7 +3578,7 @@ stage.addEventListener('dragleave', e => { if (e.target === stage) stage.classLi
 stage.addEventListener('drop', e => {
   e.preventDefault(); stage.classList.remove('drag');
   const f = e.dataTransfer.files[0]; if (!f) return;
-  if (/svg/.test(f.type) || /\.(svg|psd|psb)$/i.test(f.name)) { openFile(f); return; }
+  if (/svg/.test(f.type) || /\.(svg|psd|psb)$/i.test(f.name)) { toast('Grafiky se vybírají nahoře, nahrávat je není potřeba.'); return; }
   if (!state.svg) { toast('Nejdřív otevři PSD nebo SVG grafiku.'); return; }
   const hit = itemsAt(e.clientX, e.clientY).find(i => i.type === 'image') || (state.selected && state.selected.type === 'image' ? state.selected : null);
   if (hit) { select(hit); replaceImage(hit, f); } else toast('Pusť fotku přímo na obrázek v grafice.');
@@ -3542,9 +3586,7 @@ stage.addEventListener('drop', e => {
 document.addEventListener('paste', e => {
   if (/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
   const t = (e.clipboardData && e.clipboardData.getData('text/plain') || '').trim();
-  if (/^(<\?xml[\s\S]*?)?<svg[\s>]/i.test(t) || /^<svg[\s>]/i.test(t)) { e.preventDefault(); state.boards = null; renderBoards(); loadSVG(t, { name: 'vlozena-grafika' }); return; }
-  const f = e.clipboardData && e.clipboardData.files[0];
-  if (f && /svg/.test(f.type)) { e.preventDefault(); openFile(f); }
+
 });
 new ResizeObserver(fit).observe(stage);
 let swipe = null;
@@ -3590,6 +3632,7 @@ function demoSVG() {
   let doc = await idb.get('doc');
   if (!doc) { try { const s = localStorage.getItem('ge-svg'); if (s) doc = { svg: s, original: s, name: localStorage.getItem('ge-name') }; } catch (e) {} }
   if (doc && doc.persp) state.persp = doc.persp;
+  if (doc && doc.tpl) state.tpl = doc.tpl;
   if (doc && doc.boards && doc.boards.length) {
     state.boards = doc.boards; state.boardIdx = Math.min(doc.idx || 0, doc.boards.length - 1);
     loadSVG(state.boards[state.boardIdx].svg, { name: doc.name || 'grafika', restored: true, keepOriginal: true, keepBoards: true });
