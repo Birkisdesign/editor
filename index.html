@@ -2240,7 +2240,7 @@ function renderList() {
 
 
 /* ---------- zamykací obrazovka (heslo ověřené v prohlížeči) ---------- */
-const LOCK = { salt: '', hash: '', iter: 150000 }; // nastaví Claude podle kódu z nastavení hesla
+const LOCK = { salt: 'xcjtzYjHekCQE7iSo+YbwA==', hash: 'WrMTKF25ZEm2C68Te5l8KQPn3CLUwJNS31b9MsBP7LA=', iter: 150000 }; // nastaví Claude podle kódu z nastavení hesla
 const lockOn = /(^|\.)birkisdesign\.cz$|github\.io$/.test(location.hostname) || /[?&]lock/.test(location.search);
 async function lockHash(pass, saltB64, iter) {
   const enc = new TextEncoder();
