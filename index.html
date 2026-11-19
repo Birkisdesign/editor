@@ -779,6 +779,18 @@ body.enter .stage .boards-row,body.enter .stage #empty{animation:enterStage .7s 
 @keyframes homeFade{to{opacity:0}}
 body.enter > header,body.enter aside,body.enter .stage .boards-row,body.enter .stage #empty{animation:enterFade .45s ease both!important}
 @keyframes enterFade{from{opacity:0}to{opacity:1}}
+
+/* editor: stejné celoobrazovkové pozadí se stadionem jako úvodní obrazovka */
+.stage{isolation:auto!important;background:transparent!important}
+.stage > .bgfx{position:fixed!important;inset:0!important;z-index:0!important}
+.stage > .bgfx .court3d{--cs:.82;top:62%}
+@media (max-width:1300px){.stage > .bgfx .court3d{--cs:.66}}
+@media (max-width:900px){.stage > .bgfx .court3d{--cs:.45}}
+.stage > :not(.bgfx){position:relative;z-index:1}
+.stage > .nav-arrow,.stage > .board-pill,.stage > .hint{position:absolute}
+header{position:relative;z-index:6}
+aside{position:relative;z-index:6}
+body{background:#05070b!important}
 </style>
 </head>
 <body>
