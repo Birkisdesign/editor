@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Editor grafik (SVG z Photoshopu)</title>
@@ -263,15 +263,27 @@ header{overflow:hidden}
 @media (max-width:1350px){.hlabel{display:none}#syncWrap{font-size:12px}.brand{font-size:19px}header .btn.primary,header .btn.strong{padding:8px 12px}}
 @media (max-width:1100px){#syncWrap{display:none}}
 #fixtures{position:relative;z-index:25}#fixtures .card{position:relative;z-index:25}
+
+/* jednotné písmo Barlow Condensed */
+html,body,button,input,select,textarea,.btn,.hs,.brand small,aside h2 > span,.small{font-family:"Barlow Condensed",system-ui,-apple-system,"Segoe UI",sans-serif!important}
+html,body{font-size:15.5px;letter-spacing:.01em}
+.btn,.hs{font-size:15px;font-weight:500;letter-spacing:.02em}
+header .btn.primary,header .btn.strong{font-weight:700;letter-spacing:.03em}
+.brand{font-weight:800}
+aside h2{font-weight:700;font-size:16px}
+aside h2 > span{font-weight:500;font-size:12px;letter-spacing:.08em}
+.small{font-size:13.5px;font-weight:400}
+textarea{font-weight:600;font-size:17px}
+.score-in{font-weight:700}
+.fix-btn,.fix-opt{font-size:15px}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand"><i></i><span>Birkis Design</span> <small id="docname"></small></div>
-    <div class="hgroup" id="viewGroup" hidden><span class="hlabel">Zobrazení</span>
-      <div class="hseg"><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button></div></div>
-    <div class="hgroup" id="boardGroup" hidden><span class="hlabel">Plátno</span><div class="hseg" id="board"></div></div>
+    <div class="hgroup" id="viewGroup" hidden><div class="hseg"><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button></div></div>
+    <div class="hgroup" id="boardGroup" hidden><div class="hseg" id="board"></div></div>
     <label class="btn chk" id="syncWrap" title="Měnit texty a obrázky na všech plátnech zároveň" hidden><input type="checkbox" id="syncChk" checked> Měnit obě plátna</label>
     <span class="hspace"></span>
     <button class="btn needs" id="btnReset" title="Vrátit všechny změny od otevření">Vrátit změny</button>
@@ -1738,6 +1750,7 @@ function renderSide() {
   const side = isSide();
   boardsRow.classList.toggle('side', side);
   $('#btnSide').classList.toggle('on', side); $('#btnSingle').classList.toggle('on', !side);
+  $('#boardGroup').hidden = !(state.boards && state.boards.length > 1) || side;
   const multi = !!(state.boards && state.boards.length > 1 && state.svg);
   $('#navPrev').hidden = $('#navNext').hidden = $('#boardPill').hidden = !multi || side;
   if (multi && !side) { const b = state.boards[state.boardIdx]; $('#boardPill').innerHTML = `<b>${state.boardIdx + 1}/${state.boards.length}</b> · ${esc(b.name)} · ${b.w}×${b.h}`; }
@@ -2595,7 +2608,7 @@ function renderBoards() {
   const box = $('#board'); box.innerHTML = '';
   const bs = state.boards || [];
   const multi = bs.length > 1;
-  $('#boardGroup').hidden = !multi; $('#viewGroup').hidden = !multi;
+  $('#viewGroup').hidden = !multi;
   $('#syncWrap').hidden = !multi;
   bs.forEach((b, i) => box.append(h('button', { class: 'hs' + (i === (state.boardIdx || 0) ? ' on' : ''), title: `${b.name} (${b.w}×${b.h})`, onclick: () => switchBoard(i) },
     h('b', {}, boardKind(b)), h('small', {}, `${b.w}×${b.h}`))));
