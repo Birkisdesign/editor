@@ -507,6 +507,16 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#c9d3e4;-webkit-text-fill-color:#c9d3e4}
 .sec-badge[hidden]{display:none}
 .home-add[hidden],.lock-field[hidden],.lock-code[hidden],.lock-btn[hidden],.lock-field input[hidden]{display:none!important}
+
+/* úvodní obrazovka jako samostatná plocha s hřištěm */
+.home{background:#05070b!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;isolation:isolate}
+.home > .bgfx{z-index:0;position:fixed}
+.home > .bgfx .court3d{--cs:.82;top:62%}
+.home > .bgfx .plane{opacity:.6}
+.home-in{position:relative;z-index:1}
+.home-add{z-index:3}
+@media (max-width:1300px){.home > .bgfx .court3d{--cs:.66}}
+@media (max-width:900px){.home > .bgfx .court3d{--cs:.45}}
 </style>
 </head>
 <body>
@@ -2311,7 +2321,9 @@ function renderList() {
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
 state.section = (() => { try { return localStorage.getItem('ge-section') || 'zeny'; } catch (e) { return 'zeny'; } })();
 function showHome() {
-  const H = $('#home'); H.hidden = false; H.classList.remove('out');
+  const H = $('#home');
+  if (!H.querySelector(':scope > .bgfx')) { const fx = document.querySelector('#stage > .bgfx'); if (fx) H.prepend(fx.cloneNode(true)); }
+  H.hidden = false; H.classList.remove('out');
   $('#homeName').textContent = curUser && curUser.name ? ', ' + curUser.name : '';
   $('#homeLock').hidden = !(lockOn && LOCK.hash);
 }
