@@ -702,6 +702,17 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
 @keyframes glowA{0%{transform:translate(0,0) scale(1);opacity:.85}50%{transform:translate(4vw,3vh) scale(1.06);opacity:1}100%{transform:translate(1vw,7vh) scale(.97);opacity:.9}}
 @keyframes glowB{0%{transform:translate(0,0) scale(1);opacity:.9}50%{transform:translate(-4vw,-2vh) scale(1.05);opacity:1}100%{transform:translate(-1vw,-6vh) scale(.98);opacity:.85}}
 .home > .bgfx .o1,.home > .bgfx .o2{position:absolute}
+
+.home-tiles{grid-template-columns:repeat(2,1fr)!important;max-width:820px;margin:0 auto}
+.tile{min-height:300px!important;justify-content:flex-start!important;gap:6px!important;padding:26px 28px!important}
+.tile-spacer{flex:1}
+.tile-league{position:relative;font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c9d3e4;padding-right:44px}
+.tile-stats{position:relative;display:flex;gap:22px;margin-top:8px}
+.tile-stats i{font-style:normal;display:flex;flex-direction:column;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#8d97aa}
+.tile-stats em{font-style:normal;font-size:26px;font-weight:800;letter-spacing:.01em;color:#fff;text-transform:none;line-height:1.1}
+.tile-next{position:relative;margin-top:6px;font-size:14px;font-weight:500;color:#aeb8c9}
+.home-note{margin-top:18px;font-size:12px;color:#6f7a8e;animation:cardIn .7s ease both .4s}
+@media (max-width:760px){.home-tiles{grid-template-columns:1fr!important}.tile{min-height:240px!important}}
 </style>
 </head>
 <body>
@@ -711,10 +722,11 @@ html.no-bg-anim .plane,html.no-bg-anim .orb{animation:none!important;will-change
     <h1 class="home-title">Vítej<span id="homeName"></span></h1>
     <p class="home-sub">Vyber editor, se kterým chceš pracovat</p>
     <div class="home-tiles">
-      <button class="tile" data-sec="muzi"><span class="tile-ico">♂</span><b>Editor</b><span class="tile-name">Muži</span></button>
-      <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><b>Editor</b><span class="tile-name">Ženy</span></button>
-      <button class="tile" data-sec="ostatni"><span class="tile-ico">✦</span><b>Editor</b><span class="tile-name">Ostatní</span></button>
+      <button class="tile" data-sec="muzi"><span class="tile-ico">♂</span><span class="tile-league">FBS Olomouc · 1. liga mužů 2026/27</span><span class="tile-stats"><i><em>11.</em>místo</i><i><em>3-2-2-6</em>bilance</i><i><em>63:71</em>skóre</i></span><span class="tile-next">Další zápas: NE 22. 11. · BUTCHIS – FBS Olomouc · 17:00</span><span class="tile-spacer"></span><b>Editor</b><span class="tile-name">Muži</span></button>
+      <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><span class="tile-league">FBS Olomouc · ČEZ Extraliga 2026/27</span><span class="tile-stats"><i><em>11.</em>místo</i><i><em>1-0-1-7</em>bilance</i><i><em>19:55</em>skóre</i></span><span class="tile-next">Další zápas: NE 22. 11. · FBS Olomouc – Chomutov · 16:00</span><span class="tile-spacer"></span><b>Editor</b><span class="tile-name">Ženy</span></button>
+      
     </div>
+    <p class="home-note">Údaje z ceskyflorbal.cz k 19. 11. 2026</p>
     <div class="home-foot"><button class="btn sm" id="homeAdd">＋ Přidat účastníka</button><button class="btn sm" id="homeAnim" title="Zapnout / vypnout animaci pozadí">◐ Animace</button><button class="btn sm" id="homeLock" hidden>🔒 Zamknout</button></div>
   </div>
   <form class="lock-card home-add" id="addForm" hidden autocomplete="off">
@@ -2590,7 +2602,7 @@ function renderList() {
 
 /* ---------- úvodní obrazovka ---------- */
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
-state.section = (() => { try { return localStorage.getItem('ge-section') || 'zeny'; } catch (e) { return 'zeny'; } })();
+state.section = (() => { try { const v = localStorage.getItem('ge-section'); return v === 'muzi' ? 'muzi' : 'zeny'; } catch (e) { return 'zeny'; } })();
 function showHome() {
   const H = $('#home');
   if (!H.querySelector(':scope > .bgfx')) { const fx = document.querySelector('#stage > .bgfx'); if (fx) H.prepend(fx.cloneNode(true)); }
