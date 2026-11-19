@@ -348,12 +348,21 @@ body{background:#05070b radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
 body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,.14),transparent 60%) fixed,
   radial-gradient(900px 600px at 105% 105%,rgba(255,90,54,.09),transparent 60%) fixed;background-color:#06080c}
 .brand i{box-shadow:0 0 0 1px rgba(255,255,255,.1) inset}
+
+.brand i.bmark{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;gap:0;flex:none;
+  background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.1),rgba(255,255,255,0) 55%),rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 14px rgba(0,0,0,.25)!important;position:relative;overflow:hidden}
+.brand i.bmark::after{content:"";position:absolute;left:6px;right:6px;bottom:5px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.85}
+.brand i.bmark b{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:800;font-style:normal;font-size:16px;line-height:1;letter-spacing:-.02em;margin-top:-3px;
+  background:linear-gradient(180deg,#fff,#c7d6ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand i.bmark b+b{margin-left:1px;opacity:.85}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand"><i></i><span>Birkis Design</span> <small id="docname"></small></div>
+    <div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span> <small id="docname"></small></div>
     <div class="hgroup" id="viewGroup" hidden><div class="hseg"><button class="hs" id="btnSide" title="Zobrazit všechna plátna vedle sebe">Vedle sebe</button><button class="hs" id="btnSingle" title="Upravovat jedno plátno">Jednotlivě</button></div></div>
     <div class="hgroup" id="boardGroup" hidden><div class="hseg" id="board"></div></div>
     <label class="btn chk" id="syncWrap" title="Měnit texty a obrázky na všech plátnech zároveň" hidden><input type="checkbox" id="syncChk" checked> Měnit obě plátna</label>
