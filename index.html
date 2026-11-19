@@ -3227,10 +3227,18 @@ function renderMatch() {
     rows.push(h('label', { class: 'f full' }, m.periods.label, p));
   }
   if (m.pn) {
-    const cb = h('input', { type: 'checkbox' }); cb.checked = m.pn.el.style.display !== 'none';
-    cb.addEventListener('change', () => setVisible(m.pn, cb.checked));
-    matchRefs.pn = cb;
-    rows.push(h('label', { class: 'chk-row' }, cb, ` Po prodloužení / nájezdech („${getText(m.pn)}“)`));
+    const cur = () => m.pn.el.style.display === 'none' ? 'none' : (norm(getText(m.pn)) === 'sn' ? 'sn' : 'pn');
+    const seg = h('div', { class: 'seg tog ot-seg' }, [['none', 'Normální čas'], ['pn', 'Prodloužení'], ['sn', 'Nájezdy']].map(([v, l]) => {
+      const b = h('button', { class: 'btn sm', 'data-v': v }, l);
+      b.addEventListener('click', () => {
+        if (v === 'none') setVisible(m.pn, false); else { if (norm(getText(m.pn)) !== v) setItemText(m.pn, v); setVisible(m.pn, true); }
+        mark(); scheduleSave();
+      });
+      return b;
+    }));
+    const mark = () => { const c = cur(); seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.v === c)); };
+    mark(); matchRefs.ot = mark;
+    rows.push(h('div', { class: 'f full' }, h('span', {}, 'Konec zápasu'), seg));
   }
   box.append(h('h2', {}, 'Zápas'), h('div', { class: 'match card' }, rows));
 }
@@ -3251,7 +3259,7 @@ function renderMatchValues() {
   if (document.activeElement !== H.inp) H.inp.value = parseInt(getText(m.home), 10) || 0;
   if (document.activeElement !== A.inp) A.inp.value = parseInt(getText(m.away), 10) || 0;
   if (matchRefs.p && document.activeElement !== matchRefs.p) matchRefs.p.value = getText(m.periods);
-  if (matchRefs.pn) matchRefs.pn.checked = m.pn.el.style.display !== 'none';
+  if (matchRefs.ot) matchRefs.ot();
   [[m.logoH], [m.logoA]].forEach(([it]) => { if (it) { const img = $('#match').querySelectorAll('.m-logo img')[it === m.logoH ? 0 : 1]; if (img) img.src = getHref(it.el); } });
 }
 function onTextEdited(it) {
