@@ -629,6 +629,52 @@ body{background:#06080c radial-gradient(1100px 650px at 5% -10%,rgba(61,139,255,
     radial-gradient(circle at 38% 33%,rgba(255,180,140,.14) 0 1px,#030509 1.7px 2.8px,transparent 3.3px) 11px 2px/29px 21px,
     radial-gradient(circle at 40% 32%,rgba(215,220,235,.16) 0 1.1px,#05070b 1.8px 2.9px,transparent 3.4px) 8px 10px/19px 16px}
 .st-left{left:-760px!important}
+
+/* výkon: tribuny z jedné předkreslené textury, bez blikání */
+.st3::after{display:none!important;animation:none!important}
+.st3{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.st-far,.st-cs{background:
+   repeating-linear-gradient(0deg,transparent 0 236px,rgba(3,5,9,.97) 236px 262px),
+   var(--crowd,none) 0 0/240px 240px,
+   linear-gradient(0deg,#222b3c,#141a26 60%,#0c1018)!important}
+.st-left{background:
+   repeating-linear-gradient(270deg,transparent 0 236px,rgba(3,5,9,.97) 236px 262px),
+   var(--crowd,none) 0 0/240px 240px,
+   linear-gradient(270deg,#222b3c,#141a26 60%,#0c1018)!important}
+.st-right{background:
+   repeating-linear-gradient(90deg,transparent 0 236px,rgba(3,5,9,.97) 236px 262px),
+   var(--crowd,none) 0 0/240px 240px,
+   linear-gradient(90deg,#222b3c,#141a26 60%,#0c1018)!important}
+.st-cs{width:112px!important;left:calc(var(--x) - 56px)!important}
+.orb{mix-blend-mode:normal!important;will-change:transform}
+.home .tile{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:radial-gradient(120% 90% at 15% 0%,rgba(255,255,255,.08),rgba(255,255,255,0) 55%),rgba(14,18,26,.72)!important}
+.home .tile:hover{background:radial-gradient(120% 90% at 15% 0%,rgba(255,255,255,.12),rgba(255,255,255,0) 55%),rgba(18,23,33,.78)!important}
+
+/* plynulost: jen kompozitované animace, neprůhledné tribuny (bez blikání při řazení ve 3D) */
+.orb{filter:none!important;animation-name:orbMove!important}
+.o1{animation:orb1 40s ease-in-out infinite alternate!important;background:
+   radial-gradient(ellipse 34% 26% at 40% 46%,rgba(56,120,255,.30),transparent 100%),
+   radial-gradient(ellipse 24% 32% at 64% 58%,rgba(80,150,255,.22),transparent 100%),
+   radial-gradient(ellipse 30% 18% at 50% 32%,rgba(40,100,240,.16),transparent 100%)!important;opacity:1!important;border-radius:0!important}
+.o2{animation:orb2 46s ease-in-out infinite alternate!important;background:
+   radial-gradient(ellipse 32% 24% at 58% 54%,rgba(255,110,60,.26),transparent 100%),
+   radial-gradient(ellipse 22% 30% at 36% 44%,rgba(255,140,80,.18),transparent 100%),
+   radial-gradient(ellipse 28% 17% at 52% 70%,rgba(255,85,40,.14),transparent 100%)!important;opacity:1!important;border-radius:0!important}
+.o3{display:none!important}
+.plane .cl{filter:none!important;animation:none!important;opacity:.6!important}
+.plane .players{filter:none!important}
+.sweep::before{filter:none!important}
+.st3{opacity:1!important}
+.st-far,.st-cs{background:
+   repeating-linear-gradient(0deg,transparent 0 236px,#04060a 236px 262px),
+   var(--crowd,none) 0 0/240px 240px,
+   linear-gradient(0deg,#121823,#0b0f17 60%,#06080d)!important}
+.st-left{background:repeating-linear-gradient(270deg,transparent 0 236px,#04060a 236px 262px),var(--crowd,none) 0 0/240px 240px,linear-gradient(270deg,#121823,#0b0f17 60%,#06080d)!important}
+.st-right{background:repeating-linear-gradient(90deg,transparent 0 236px,#04060a 236px 262px),var(--crowd,none) 0 0/240px 240px,linear-gradient(90deg,#121823,#0b0f17 60%,#06080d)!important}
+.st3::before{background:linear-gradient(0deg,transparent 30%,rgba(5,7,11,.6) 75%,#05070b)!important}
+.st-left::before{background:linear-gradient(90deg,#05070b,rgba(5,7,11,.6) 25%,transparent 70%)!important}
+.st-right::before{background:linear-gradient(270deg,#05070b,rgba(5,7,11,.6) 25%,transparent 70%)!important}
+.plane,.st3{will-change:transform}
 </style>
 </head>
 <body>
@@ -2429,6 +2475,27 @@ function renderList() {
 
 
 
+
+
+/* ---------- textura diváků (vykreslí se jednou) ---------- */
+(function crowdTexture() {
+  try {
+    const N = 240, c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d');
+    let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const tints = ['190,205,235', '230,185,155', '160,190,255', '255,180,140', '215,220,235'];
+    g.strokeStyle = 'rgba(255,255,255,.04)'; g.lineWidth = 1;
+    for (let y = 12; y < N; y += 12) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(N, y + .5); g.stroke(); }
+    for (let y = 6; y < N; y += 12) for (let x = 4 + (y / 12 % 2) * 5; x < N; x += 10) {
+      if (rnd() < .06) continue;
+      const px = x + (rnd() - .5) * 3, py = y + (rnd() - .5) * 2, r = 2.6 + rnd() * .8;
+      g.fillStyle = '#05070b'; g.beginPath(); g.arc(px, py, r, 0, 7); g.fill();
+      g.fillStyle = `rgba(${tints[(rnd() * tints.length) | 0]},${(.09 + rnd() * .1).toFixed(2)})`;
+      g.beginPath(); g.arc(px - r * .3, py - r * .35, r * .45, 0, 7); g.fill();
+    }
+    document.documentElement.style.setProperty('--crowd', `url(${c.toDataURL('image/png')})`);
+  } catch (e) {}
+})();
 
 /* ---------- úvodní obrazovka ---------- */
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
