@@ -2775,7 +2775,7 @@ async function loadTemplate(sec, id) {
     state.boardIdx = 0; state.tpl = sec + '/' + t.id;
     try { localStorage.setItem('ge-tpl-' + sec, t.id); } catch (e) {}
     loadSVG(state.boards[0].svg, { name: t.name, keepBoards: true });
-    renderBoards(); await checkFonts(); busy(false); saveNow();
+    renderBoards(); await checkFonts(); busy(false); saveNow(); histReset();
   } catch (e) {
     console.error(e); busy(false);
     $('#tplEmptyH').textContent = 'Grafiku se nepodařilo načíst'; $('#tplEmptyP').textContent = String(e && e.message || e);
@@ -3486,7 +3486,54 @@ function snapshot() {
   return { name: state.name, svg: cur, original: state.original, persp: state.persp };
 }
 let saveT;
-function scheduleSave() { clearTimeout(saveT); saveT = setTimeout(saveNow, 900); }
+function scheduleSave() { clearTimeout(saveT); saveT = setTimeout(saveNow, 900); if (!hist.busy) { clearTimeout(hist.t); hist.t = setTimeout(histPush, 350); } }
+/* ---------- krok zpět (Cmd/Ctrl+Z) ---------- */
+const hist = { stack: [], redo: [], busy: false, t: 0 };
+function histSnap() {
+  const s = snapshot();
+  return { idx: s.idx || 0, persp: state.persp, boards: s.boards ? s.boards.map(b => ({ ...b })) : null, svg: s.svg, original: s.original };
+}
+function histSame(a, b) {
+  if (!a || !b || a.persp !== b.persp) return false;
+  if (a.boards && b.boards) return a.boards.length === b.boards.length && a.boards.every((x, i) => x.svg === b.boards[i].svg);
+  return a.svg === b.svg;
+}
+function histPush() {
+  if (hist.busy || !state.svg) return;
+  const s = histSnap(); if (histSame(s, hist.stack[hist.stack.length - 1])) return;
+  hist.stack.push(s); if (hist.stack.length > 40) hist.stack.shift(); hist.redo = [];
+}
+function histReset() { clearTimeout(hist.t); hist.stack = []; hist.redo = []; if (state.svg) hist.stack.push(histSnap()); }
+function histApply(s) {
+  hist.busy = true; clearTimeout(hist.t);
+  const sel = state.selected && state.selected.el && state.selected.el.id;
+  state.persp = s.persp;
+  if (s.boards) {
+    state.boards = s.boards.map(b => ({ ...b })); state.boardIdx = Math.min(s.idx, state.boards.length - 1);
+    loadSVG(state.boards[state.boardIdx].svg, { keepOriginal: true, keepBoards: true }); state.original = state.boards[state.boardIdx].original; renderBoards();
+  } else { loadSVG(s.svg, { keepOriginal: true }); state.original = s.original; }
+  if (sel) { const it = state.items.find(i => i.el.id === sel); if (it) select(it, false); }
+  hist.stack[hist.stack.length - 1] = histSnap();
+  clearTimeout(hist.t); hist.busy = false; saveNow();
+}
+function undo() {
+  if (!state.svg) return;
+  clearTimeout(hist.t); histPush();
+  if (hist.stack.length < 2) { toast('Není co vrátit.'); return; }
+  hist.redo.push(hist.stack.pop()); histApply(hist.stack[hist.stack.length - 1]);
+}
+function redo() {
+  if (!state.svg || !hist.redo.length) return;
+  const s = hist.redo.pop(); hist.stack.push(s); histApply(s);
+}
+document.addEventListener('keydown', e => {
+  if (!(e.metaKey || e.ctrlKey) || e.altKey || e.key.toLowerCase() !== 'z' && e.key.toLowerCase() !== 'y') return;
+  const a = document.activeElement;
+  if (a && (/^(TEXTAREA|SELECT)$/.test(a.tagName) || (a.tagName === 'INPUT' && !/^(checkbox|radio|button|range)$/.test(a.type)) || a.isContentEditable)) return;
+  if (!state.svg || !$('#home').hidden) return;
+  e.preventDefault();
+  if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
+});
 function saveNow() { clearTimeout(saveT); if (!state.svg) return; try { idb.set('doc', snapshot()); } catch (e) {} }
 window.addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
@@ -3644,6 +3691,7 @@ function demoSVG() {
   } else if (doc && doc.svg) {
     loadSVG(doc.svg, { name: doc.name || 'grafika', restored: true, keepOriginal: true }); state.original = doc.original || doc.svg; checkFonts();
   } else renderFonts();
+  setTimeout(histReset, 500);
 })();
 })();
 </script>
