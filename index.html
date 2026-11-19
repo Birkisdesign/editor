@@ -2641,13 +2641,13 @@ function renderHomeMatches() {
     const list = HOME_FIX[el.dataset.team] || [];
     const next = list.find(f => { const d = fixDate(f[1]); return d && d >= today; });
     const alert = el.closest('.tile').querySelector('.tile-alert');
-    el.innerHTML = ''; el.classList.remove('today'); alert.hidden = true;
+    el.innerHTML = ''; el.classList.remove('today'); alert.hidden = false;
     if (!next) { el.append(h('small', {}, 'Další zápas'), h('span', {}, 'Sezóna je u konce')); return; }
     const [r, d, hm, aw, tm] = next; const dd = fixDate(d);
     const isToday = dd.getTime() === today.getTime();
     const tomorrow = dd.getTime() === today.getTime() + 864e5;
     const day = d.replace(/^(\S+),\s*/, (m0, w) => (DOW[w] || w) + ' ');
-    el.classList.toggle('today', isToday); alert.hidden = !isToday;
+    el.classList.toggle('today', isToday); alert.hidden = false; alert.title = isToday ? 'Dnes se hraje' : 'Další zápas';
     el.append(h('small', {}, isToday ? 'Dnes se hraje' : tomorrow ? 'Zítra' : 'Další zápas'),
       h('strong', {}, `${hm} – ${aw}`),
       h('span', {}, `${r}. kolo · ${day}${tm ? ' · ' + tm : ''}`));
