@@ -1884,6 +1884,7 @@ function collect() {
       if (o) { const p = o.split(' ').map(Number); it.o = { x: p[0], y: p[1], w: p[2], h: p[3] }; }
       else it.o = { x: num(el, 'x'), y: num(el, 'y'), w: num(el, 'width'), h: num(el, 'height') };
       it.zoom = +el.getAttribute('data-ge-zoom') || 1; it.ox = +el.getAttribute('data-ge-ox') || 0; it.oy = +el.getAttribute('data-ge-oy') || 0;
+      it._pz = { zoom: it.zoom, ox: it.ox, oy: it.oy, o: it.o };
       it.clipped = el.hasAttribute('clip-path');
     } else {
       const a = analyze(el); if (a.lines.length > 1) it.lh = a.lines[1].y - a.lines[0].y;
@@ -2083,7 +2084,7 @@ function restorePhotoEl(el, root, href) {
 function restorePhoto(it) {
   const href = origHrefFor(it.el, state.original);
   if (!restorePhotoEl(it.el, state.svg, href)) { toast('Původní fotku se nepodařilo najít.'); return; }
-  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0;
+  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0; it._pz = { zoom: 1, ox: 0, oy: 0, o: it.o };
   it.t0 = it.el.getAttribute('transform') || '';
   if (it.thumb) it.thumb.src = href;
   if (it.origBtn) it.origBtn.disabled = true;
@@ -2156,7 +2157,7 @@ function centerYEl(el, root) {
   updateTwinEl(el, root);
 }
 function afterFrame(it) {
-  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0;
+  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0; it._pz = { zoom: 1, ox: 0, oy: 0, o: it.o };
   it.t0 = it.el.getAttribute('transform') || ''; it.clipped = it.el.hasAttribute('clip-path');
   changed();
 }
@@ -2166,14 +2167,14 @@ async function photoFitHeight(it) {
 }
 function photoCenter(it) {
   centerYEl(it.el, state.svg);
-  it.o = origOf(it.el); it.oy = 0; it.dy = 0;
+  it.o = origOf(it.el); it.oy = 0; it.dy = 0; it._pz = { zoom: it.zoom, ox: it.ox, oy: 0, o: it.o };
   it.t0 = it.el.hasAttribute('data-ge-t') ? it.el.getAttribute('data-ge-t') : (it.el.getAttribute('transform') || '');
   if (it.ctrl) syncImageCard(it);
   queueSync(it, 'center', true); changed();
 }
 function photoFrame(it, fill) {
   if (fill) fillEl(it.el, state.svg, fill === 'meet' ? 'meet' : 'slice'); else resetEl(it.el, state.svg);
-  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0;
+  it.o = origOf(it.el); it.zoom = 1; it.ox = 0; it.oy = 0; it.dx = 0; it.dy = 0; it._pz = { zoom: 1, ox: 0, oy: 0, o: it.o };
   it.t0 = it.el.getAttribute('transform') || ''; it.clipped = it.el.hasAttribute('clip-path');
   queueSync(it, fill === 'meet' ? 'meet' : fill ? 'fill' : 'reset', true);
   if (state.selected === it && typeof drawOverlay === 'function') drawOverlay();
@@ -2190,7 +2191,10 @@ const pendingSync = new Map(); let syncT;
 const syncKey = id => norm(id.replace(/_x([0-9a-fA-F]{2})_/g, (m, x) => String.fromCharCode(parseInt(x, 16)))).replace(/\s*\b(kopie|copy|kopia)\b(\s*\d+)?$/, '').replace(/\s+\d+$/, '').trim();
 function queueSync(it, type, val) {
   if (!state.boards || state.boards.length < 2 || !state.sync || !it.el.id) return;
-  pendingSync.set(type + ':' + it.el.id, { type, id: it.el.id, key: syncKey(it.el.id), val });
+  const pk = type + ':' + it.el.id, prev = pendingSync.get(pk);
+  if (type === 'pand' && prev) val = { f: prev.val.f * val.f, dx: prev.val.dx + val.dx, dy: prev.val.dy + val.dy };
+  if (prev && type !== 'pand') pendingSync.delete(pk);
+  pendingSync.set(pk, { type, id: it.el.id, key: syncKey(it.el.id), val });
   clearTimeout(syncT); syncT = setTimeout(flushSync, 600);
 }
 function flushSync() {
@@ -2210,10 +2214,12 @@ function flushSync() {
       else if (op.type === 'orig' && el.localName === 'image') { if (restorePhotoEl(el, root, origHrefFor(el, b.original))) touched = true; }
       else if (op.type === 'fith' && el.localName === 'image') { fitHeightEl(el, root, op.val); touched = true; }
       else if (op.type === 'center' && el.localName === 'image') { centerYEl(el, root); touched = true; }
-      else if (op.type === 'pan' && el.localName === 'image') {
+      else if (op.type === 'pand' && el.localName === 'image') {
         const og = el.getAttribute('data-ge-orig'); const pp = og ? og.split(' ').map(Number) : [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')];
         const o = { x: pp[0], y: pp[1], w: pp[2], h: pp[3] }; if (!o.w || !o.h) continue;
-        const { zoom, ox, oy } = op.val, nw = o.w * zoom, nh = o.h * zoom;
+        const zoom = (+el.getAttribute('data-ge-zoom') || 1) * op.val.f;
+        const ox = (+el.getAttribute('data-ge-ox') || 0) + op.val.dx / o.w * 100, oy = (+el.getAttribute('data-ge-oy') || 0) + op.val.dy / o.h * 100;
+        const nw = o.w * zoom, nh = o.h * zoom;
         el.setAttribute('x', r2(o.x + (o.w - nw) / 2 + ox / 100 * o.w)); el.setAttribute('y', r2(o.y + (o.h - nh) / 2 + oy / 100 * o.h));
         el.setAttribute('width', r2(nw)); el.setAttribute('height', r2(nh));
         const custom = zoom !== 1 || ox || oy;
@@ -2258,7 +2264,13 @@ function applyImage(it) {
   setData(el, 'orig', `${x} ${y} ${w} ${hh}`, custom);
   setData(el, 'zoom', r2(it.zoom), custom); setData(el, 'ox', r2(it.ox), custom); setData(el, 'oy', r2(it.oy), custom);
   updateTwin(it);
-  queueSync(it, 'pan', { zoom: it.zoom, ox: it.ox, oy: it.oy });
+  // do ostatních pláten posílej jen změnu (posun v px plátna, násobek zoomu), ne poměr
+  const pz = it._pz;
+  if (pz && pz.o === it.o) {
+    const f = it.zoom / (pz.zoom || 1), dx = (it.ox - pz.ox) / 100 * w, dy = (it.oy - pz.oy) / 100 * hh;
+    if (Math.abs(f - 1) > 1e-6 || Math.abs(dx) > 1e-3 || Math.abs(dy) > 1e-3) queueSync(it, 'pand', { f, dx, dy });
+  }
+  it._pz = { zoom: it.zoom, ox: it.ox, oy: it.oy, o: it.o };
 }
 function prepareImage(file) {
   return new Promise((res, rej) => {
