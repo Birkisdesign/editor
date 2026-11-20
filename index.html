@@ -3152,12 +3152,23 @@ async function listImagesDeep(id, depth = 2) {
   if (depth > 0) for (const sub of await Promise.all(items.filter(x => x.dir).map(x => listImagesDeep(x.id, depth - 1).catch(() => [])))) out.push(...sub);
   return out;
 }
+// začátek zápasu (čas z rozpisu, když chybí, bere se půlnoc dne zápasu)
+function matchStart(sec, i) {
+  const F = FIXSET[sec]; const f = F && F.list[i]; if (!f) return null;
+  const d = fixDate(f[1]); if (!d) return null;
+  const hf = (HOME_FIX[sec] || []).find(x => x[0] === f[0]); const t = hf && /^(\d{1,2}):(\d{2})$/.exec(hf[4] || '');
+  if (t && hf[4] !== '00:00') d.setHours(+t[1], +t[2], 0, 0);
+  else d.setHours(1, 0, 0, 0); // bez času: hledej od půlnoci dne zápasu
+  return d;
+}
 async function galScan(reset) {
   if (!gal.url || gal.busy) { renderGallery(); return; }
   const F = fx(); let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
   if (!(i >= 0 && F.list[i])) { gal.err = 'Nejdřív vyber zápas v panelu Zápasy.'; gal.items = []; renderGallery(); return; }
   const fk = state.section + ':' + i, changedFix = gal.fixture !== fk;
   if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; gal.notFound = false; }
+  const st = matchStart(state.section, i);
+  if (st && Date.now() < st.getTime() - 3600e3) { gal.fixture = fk; gal.items = []; gal.folder = ''; gal.folderId = ''; gal.err = ''; gal.notFound = true; renderGallery(); return; }
   gal.fixture = fk; gal.busy = true; gal.err = ''; renderGallery();
   try {
     if (!gal.folderId) {
