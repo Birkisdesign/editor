@@ -2897,6 +2897,7 @@ $('#lockForm').addEventListener('submit', async e => {
   curUser = found;
   try { sessionStorage.setItem('ge-unlock', lockToken());
     if ($('#lockRem').checked) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); } catch (e2) {}
+  if (DRIVE_CFG && !gal.url) driveDecrypt(p1).then(ok => { if (ok) galScan(true); });
   $('#lockPass').value = ''; hideLock(); showHome(); renderHomeMatches && renderHomeMatches();
 });
 $('#lockCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lockCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
@@ -3032,6 +3033,40 @@ async function gasList(id, files) {
   if (!files) { gal.dirCache.set(k, p); p.catch(() => gal.dirCache.delete(k)); }
   return p;
 }
+// připojení Disku pro všechna zařízení: adresa + klíč skriptu zašifrované heslem (bez hesla nečitelné)
+const DRIVE_CFG = '';
+const b64e = u8 => btoa(String.fromCharCode(...u8)), b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function driveKey(pass, salt) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: LOCK_ITER }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function driveDecrypt(pass) {
+  try {
+    const [, salt, iv, ct] = DRIVE_CFG.split(':');
+    const k = await driveKey(pass, b64d(salt));
+    const j = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(iv) }, k, b64d(ct))));
+    gal.url = j.u; gal.key = j.k; gal.ok = true; gal.dirCache.clear();
+    try { localStorage.setItem('ge-gas-url', gal.url); localStorage.setItem('ge-gas-key', gal.key); } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+async function galConnectSaved() {
+  const p = await askText('Zadej své heslo k webu – Disk se připojí sám:', '', { type: 'password', ok: 'Připojit' });
+  if (!p) return;
+  if (await driveDecrypt(p)) { toast('Google Disk připojen.'); renderGallery(); galScan(true); }
+  else toast('Špatné heslo.');
+}
+async function galShare() {
+  const p = await askText('Zadej své heslo k webu. Připojení Disku se jím zašifruje, aby fungovalo na všech tvých zařízeních:', '', { type: 'password', ok: 'Pokračovat' });
+  if (!p) return;
+  let okUser = false; for (const u of USERS) { if ((await lockHash(p, u.salt, LOCK_ITER)) === u.hash) { okUser = true; break; } }
+  if (!okUser) return toast('Špatné heslo.');
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await driveKey(p, salt), new TextEncoder().encode(JSON.stringify({ u: gal.url, k: gal.key }))));
+  const code = `BDDRIVE:${b64e(salt)}:${b64e(iv)}:${b64e(ct)}`;
+  try { await navigator.clipboard.writeText(code); } catch (e) {}
+  await askText('Kód je zkopírovaný – pošli ho Claudovi. Bez tvého hesla je nečitelný.', code, { ok: 'Hotovo' });
+}
 async function galConnect() {
   const url = await askText('Vlož adresu webové aplikace z Google Apps Script (končí na /exec):', gal.url);
   if (!url) return;
@@ -3165,11 +3200,13 @@ function renderGallery() {
   }
   if (!gal.url) {
     box.append(h('p', { class: 'small' }, 'Fotky se berou přímo z Google Disku (složka ' + fx().folder + '), nic se nestahuje do počítače. Jednou je potřeba připojit malý skript – návod máš v souboru „Disk-skript.txt“.'),
-      h('button', { class: 'btn sm', onclick: galConnect }, '🔗 Připojit Google Disk'));
+      DRIVE_CFG ? h('span', {}, h('button', { class: 'btn sm', onclick: galConnectSaved }, '🔗 Připojit Google Disk'), ' ', h('button', { class: 'btn sm', onclick: galConnect, title: 'Zadat adresu skriptu ručně' }, 'ručně'))
+        : h('button', { class: 'btn sm', onclick: galConnect }, '🔗 Připojit Google Disk'));
     return;
   }
   head.append(h('span', { class: 'gal-act' },
     h('button', { class: 'btn sm', title: 'Načíst nové fotky', onclick: () => galScan(false) }, gal.busy ? '…' : '↻ Obnovit'),
+    DRIVE_CFG ? '' : h('button', { class: 'btn sm', title: 'Připojení Disku pro všechna zařízení', onclick: galShare }, '📱 Všude'),
     h('button', { class: 'btn sm', title: 'Změnit připojení Disku', onclick: galConnect }, '⚙')));
   if (gal.folder) box.append(h('p', { class: 'small gal-path' }, gal.folder + ' · fotek: ' + gal.items.length + ' · nové se načítají samy'));
   if (gal.err) box.append(h('p', { class: 'small gal-err' }, gal.err));
@@ -3323,15 +3360,15 @@ async function saveToLibrary(it) {
   lib.push({ id: Date.now().toString(36), name: name || 'Logo', data: await shrinkData(getHref(it.el)) });
   saveLib(); toast(`Logo „${name || 'Logo'}“ je uložené v knihovně.`);
 }
-function askText(msg, def) {
+function askText(msg, def, opt = {}) {
   return new Promise(res => {
     const bg = h('div', { class: 'modal-bg' });
-    const inp = h('input', { type: 'text', class: 'm-text', value: def || '' });
+    const inp = h('input', { type: opt.type || 'text', class: 'm-text', value: def || '' });
     const done = v => { bg.remove(); res(v); };
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') done(inp.value.trim()); if (e.key === 'Escape') done(null); });
     bg.append(h('div', { class: 'modal' }, h('p', {}, msg), inp,
       h('div', { class: 'seg', style: 'margin-top:12px' }, h('button', { class: 'btn', onclick: () => done(null) }, 'Zrušit'),
-        h('button', { class: 'btn primary', onclick: () => done(inp.value.trim()) }, 'Uložit'))));
+        h('button', { class: 'btn primary', onclick: () => done(inp.value.trim()) }, opt.ok || 'Uložit'))));
     bg.addEventListener('click', e => { if (e.target === bg) done(null); });
     document.body.append(bg); setTimeout(() => inp.focus(), 30);
   });
