@@ -3034,7 +3034,7 @@ async function gasList(id, files) {
   return p;
 }
 // připojení Disku pro všechna zařízení: adresa + klíč skriptu zašifrované heslem (bez hesla nečitelné)
-const DRIVE_CFG = '';
+const DRIVE_CFG = 'BDDRIVE:biO8EA+R5iH9rsA8y0zOnw==:haBwnfbtFmUsynd3:ua1Soez46BwO18c5BsOUZ6fp7DAa4nPIJEZBSZW3TBL70IdXpOi1S6cxnkAmTKAGTeXLHbxqGP6Boya3PKg+pIKnC8oJG57+ilsepvXjQeFWzAvq+rU+mfC5WttjFHfMfj3Oxzo6OhO9jFjBvhQNX+gDPoHYZ/3+n+2dXkZt7ps71OHqwN++vd9dLKsMz8Z7meS/B/+WJQI=';
 const b64e = u8 => btoa(String.fromCharCode(...u8)), b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 async function driveKey(pass, salt) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
