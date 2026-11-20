@@ -2809,6 +2809,7 @@ $('#tplSel').addEventListener('change', async e => {
 });
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
   setSection(t.dataset.sec); ensureTemplate(t.dataset.sec);
+  if (gal.url && !galBlocked() && gal.fixture && !String(gal.fixture).startsWith(t.dataset.sec + ':')) { gal.items = []; gal.folder = ''; gal.folderId = ''; gal.fixture = null; setTimeout(() => galScan(true), 600); }
   document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
   hideHome();
   setTimeout(() => document.body.classList.remove('enter'), 700);
@@ -2939,8 +2940,8 @@ const SHORT = { 'FBS Olomouc': 'Olomouc', 'Tatran Střešovice': 'Tatran', 'FbŠ
 const FIX_M = [["1", "NE, 6. 9.", "Florbal Respect Hradec Králové", "FBS Olomouc", "", ""], ["2", "SO, 12. 9.", "FBS Olomouc", "BUTCHIS", "", ""], ["3", "NE, 20. 9.", "TJ Sokol Královské Vinohrady", "FBS Olomouc", "", ""], ["4", "PÁ, 2. 10.", "FBS Olomouc", "TJ Znojmo LAUFEN CZ", "", ""], ["5", "NE, 4. 10.", "FBS Olomouc", "Goldea PANTHERS OTROKOVICE", "", ""], ["6", "NE, 11. 10.", "FBC Vikings Kopřivnice", "FBS Olomouc", "", ""], ["7", "NE, 18. 10.", "FBS Olomouc", "Wizards SO DDM Praha 10", "", ""], ["8", "NE, 25. 10.", "FBŠ SLAVIA Fat Pipe Plzeň", "FBS Olomouc", "", ""], ["9", "ST, 28. 10.", "FBS Olomouc", "Asper Šumperk", "", ""], ["10", "NE, 1. 11.", "FBS Olomouc", "BLACK ANGELS", "", ""], ["11", "NE, 8. 11.", "FBS Olomouc", "ASK Orka Stará Boleslav", "", ""], ["12", "NE, 15. 11.", "Zlín Lions", "FBS Olomouc", "", ""], ["13", "ÚT, 17. 11.", "FBS Olomouc", "Torpedo Havířov", "", ""], ["14", "NE, 22. 11.", "BUTCHIS", "FBS Olomouc", "", ""], ["15", "NE, 29. 11.", "FBS Olomouc", "TJ Sokol Královské Vinohrady", "", ""], ["16", "SO, 5. 12.", "TJ Znojmo LAUFEN CZ", "FBS Olomouc", "", ""], ["17", "NE, 13. 12.", "Goldea PANTHERS OTROKOVICE", "FBS Olomouc", "", ""], ["18", "NE, 20. 12.", "FBS Olomouc", "FBC Vikings Kopřivnice", "", ""], ["19", "NE, 10. 1.", "Wizards SO DDM Praha 10", "FBS Olomouc", "", ""], ["20", "NE, 17. 1.", "FBS Olomouc", "FBŠ SLAVIA Fat Pipe Plzeň", "", ""], ["21", "SO, 23. 1.", "Asper Šumperk", "FBS Olomouc", "", ""], ["22", "NE, 31. 1.", "BLACK ANGELS", "FBS Olomouc", "", ""], ["23", "NE, 7. 2.", "ASK Orka Stará Boleslav", "FBS Olomouc", "", ""], ["24", "NE, 14. 2.", "FBS Olomouc", "Zlín Lions", "", ""], ["25", "SO, 20. 2.", "Torpedo Havířov", "FBS Olomouc", "", ""], ["26", "SO, 27. 2.", "FBS Olomouc", "Florbal Respect Hradec Králové", "", ""]];
 const FIX_LOGO_M = {"FBS Olomouc": "FBS Olomouc", "Florbal Respect Hradec Králové": "Hradec Králové", "BUTCHIS": "Butchis", "TJ Sokol Královské Vinohrady": "SKV", "TJ Znojmo LAUFEN CZ": "Znojmo", "Goldea PANTHERS OTROKOVICE": "Otrokovice", "FBC Vikings Kopřivnice": "Kopřivnice", "Wizards SO DDM Praha 10": "Wizards", "FBŠ SLAVIA Fat Pipe Plzeň": "Slavia Plzeň", "Asper Šumperk": "Šumperk", "BLACK ANGELS": "Black Angels", "ASK Orka Stará Boleslav": "Orka", "Zlín Lions": "Zlín", "Torpedo Havířov": "Havířov"};
 Object.assign(SHORT, {"Florbal Respect Hradec Králové": "Hradec Králové", "BUTCHIS": "Butchis", "TJ Sokol Královské Vinohrady": "Vinohrady", "TJ Znojmo LAUFEN CZ": "Znojmo", "Goldea PANTHERS OTROKOVICE": "Otrokovice", "FBC Vikings Kopřivnice": "Kopřivnice", "Wizards SO DDM Praha 10": "Wizards", "FBŠ SLAVIA Fat Pipe Plzeň": "Slavia Plzeň", "Asper Šumperk": "Šumperk", "BLACK ANGELS": "Black Angels", "ASK Orka Stará Boleslav": "Orka", "Zlín Lions": "Zlín", "Torpedo Havířov": "Havířov"});
-const FIXSET = { zeny: { list: FIXTURES, cat: 'ČEZ Extraliga', logos: FIX_LOGO, key: 'ge-fixture', title: 'ČEZ Extraliga 26/27' },
-  muzi: { list: FIX_M, cat: '1. liga mužů', logos: FIX_LOGO_M, key: 'ge-fixture-muzi', title: '1. liga mužů 26/27' } };
+const FIXSET = { zeny: { list: FIXTURES, cat: 'ČEZ Extraliga', logos: FIX_LOGO, key: 'ge-fixture', title: 'ČEZ Extraliga 26/27', root: '', folder: '2026/2027 ČEZ Extraliga' },
+  muzi: { list: FIX_M, cat: '1. liga mužů', logos: FIX_LOGO_M, key: 'ge-fixture-muzi', title: '1. liga mužů 26/27', root: '1WaMdff0XnZNm-5juJHq_TnVtNm_1rBNL', folder: '2026/2027 1. liga mužů' } };
 const fx = () => FIXSET[state.section] || FIXSET.zeny;
 // zápas je „odehraný“, když je jeho den aspoň 1 den před dneškem (sezóna 2026/27: srpen–prosinec 2026, leden–červenec 2027)
 function fixtureDate(i) {
@@ -2968,7 +2969,7 @@ function renderFixtures() {
     const o = h('button', { type: 'button', class: 'fix-opt' + (fixturePast(i) ? ' past' : '') + (String(i) === cur ? ' on' : '') }, label(i));
     o.addEventListener('click', () => {
       closeList(); try { localStorage.setItem(F.key, String(i)); } catch (e) {}
-      applyFixture(i); if (state.section === 'zeny') galScan(true);
+      applyFixture(i); galScan(true);
     });
     list.append(o);
   });
@@ -3044,9 +3045,10 @@ async function galConnect() {
   gal.busy = false; renderGallery(); if (gal.ok) galScan(true);
 }
 async function findMatchFolder(i) {
-  const [r, d, hm, aw] = FIXTURES[i];
-  const home = TEAM_KEY[hm], opp = hm === 'FBS Olomouc' ? TEAM_KEY[aw] : null;
-  const top = await gasList('', false);
+  const F = fx(); const [r, d, hm, aw] = F.list[i];
+  const tk = t => TEAM_KEY[t] || norm(t);
+  const home = tk(hm), opp = hm === 'FBS Olomouc' ? tk(aw) : null;
+  const top = await gasList(F.root, false);
   const team = top.find(x => x.dir && norm(x.name).includes(home));
   if (!team) return { err: `Na Disku jsem nenašel složku týmu „${hm}“.` };
   const dm = d.match(/(\d+)\.\s*(\d+)\./), day = dm ? +dm[1] : 0, mon = dm ? +dm[2] : 0;
@@ -3104,11 +3106,11 @@ async function listImagesDeep(id, depth = 2) {
 }
 async function galScan(reset) {
   if (!gal.url || gal.busy) { renderGallery(); return; }
-  let i = -1; try { i = +localStorage.getItem('ge-fixture'); } catch (e) {}
-  if (!(i >= 0 && FIXTURES[i])) { gal.err = 'Nejdřív vyber zápas v panelu Zápasy.'; gal.items = []; renderGallery(); return; }
-  const changedFix = gal.fixture !== i;
+  const F = fx(); let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
+  if (!(i >= 0 && F.list[i])) { gal.err = 'Nejdřív vyber zápas v panelu Zápasy.'; gal.items = []; renderGallery(); return; }
+  const fk = state.section + ':' + i, changedFix = gal.fixture !== fk;
   if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; }
-  gal.fixture = i; gal.busy = true; gal.err = ''; renderGallery();
+  gal.fixture = fk; gal.busy = true; gal.err = ''; renderGallery();
   try {
     if (!gal.folderId) {
       const f = await findMatchFolder(i);
@@ -3154,7 +3156,7 @@ async function galUse(it, btn) {
 function renderGallery() {
   const box = $('#gallery'); if (!box) return;
   box.innerHTML = '';
-  if (state.section !== 'zeny') { box.hidden = true; return; } box.hidden = false;
+  if (!FIXSET[state.section]) { box.hidden = true; return; } box.hidden = false;
   const head = h('div', { class: 'gal-head' }, h('b', {}, 'Fotky ze zápasu'));
   box.append(head);
   if (galBlocked()) {
@@ -3162,7 +3164,7 @@ function renderGallery() {
     return;
   }
   if (!gal.url) {
-    box.append(h('p', { class: 'small' }, 'Fotky se berou přímo z Google Disku (složka 2026/2027 ČEZ Extraliga), nic se nestahuje do počítače. Jednou je potřeba připojit malý skript – návod máš v souboru „Disk-skript.txt“.'),
+    box.append(h('p', { class: 'small' }, 'Fotky se berou přímo z Google Disku (složka ' + fx().folder + '), nic se nestahuje do počítače. Jednou je potřeba připojit malý skript – návod máš v souboru „Disk-skript.txt“.'),
       h('button', { class: 'btn sm', onclick: galConnect }, '🔗 Připojit Google Disk'));
     return;
   }
