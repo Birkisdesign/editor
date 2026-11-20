@@ -3198,6 +3198,7 @@ async function galUse(it, btn) {
     const j = await gas({ a: 'img', id: it.id, sz: 2400 });
     const bin = atob(j.data), arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
     await replaceImage(ph, new File([arr], it.name, { type: j.mime || 'image/jpeg' }));
+    await photoFitHeight(photoItem() || ph);
     btn.closest('.gal-grid').querySelectorAll('.gal-it.on').forEach(x => x.classList.remove('on')); btn.classList.add('on');
   } catch (e) { toast('Fotku se nepodařilo načíst z Disku.'); }
   btn.classList.remove('busy');
