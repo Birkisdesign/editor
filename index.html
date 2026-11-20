@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Birkis Design</title>
 <style>
 :root{--bg:#0e1014;--panel:#15181e;--panel2:#1c2028;--line:#2a303b;--text:#e8eaef;--muted:#8a93a4;--accent:#4f8cff;--accent2:#ffb020;--ok:#3ecf8e}
@@ -815,6 +815,20 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
 .empty .tips{display:none!important}
 .share-now{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;padding:14px 26px;font-size:17px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 
+/* ===== telefon: web přes celý displej (iOS Safari, viewport-fit=cover) ===== */
+html{background:#05070b}
+@media (max-width:880px){
+  /* úvodní obrazovka se posouvá jako běžná stránka, Safari ji pak ukáže i pod lištami */
+  .home{position:absolute;inset:0 0 auto 0;min-height:100%;overflow:visible;
+    padding:calc(24px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
+  body:has(#home:not([hidden])) .app{display:none}
+  body:has(#home:not([hidden])){height:auto}
+  header{padding-top:calc(8px + env(safe-area-inset-top))!important;padding-left:calc(10px + env(safe-area-inset-left))!important;padding-right:calc(10px + env(safe-area-inset-right))!important}
+  header{position:sticky!important;top:0!important;z-index:8!important}
+  .stage{top:var(--hh,calc(62px + env(safe-area-inset-top)))!important}
+  aside{padding-bottom:calc(40px + env(safe-area-inset-bottom))!important}
+  .lock{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+}
 </style>
 </head>
 <body>
@@ -2769,7 +2783,7 @@ setInterval(renderHomeMatches, 60 * 1000);
 const SEC_NAMES = { muzi: 'Muži', zeny: 'Ženy', ostatni: 'Ostatní' };
 state.section = (() => { try { const v = localStorage.getItem('ge-section'); return v === 'muzi' ? 'muzi' : 'zeny'; } catch (e) { return 'zeny'; } })();
 function showHome() {
-  const H = $('#home');
+  const H = $('#home'); window.scrollTo(0, 0);
   if (!H.querySelector(':scope > .bgfx')) { const fx = document.querySelector('#stage > .bgfx'); if (fx) {
     const cl = fx.cloneNode(true);
     // jedinečná id (gradienty), aby odkazy nemířily do skryté kopie
@@ -2830,6 +2844,10 @@ async function ensureTemplate(sec) {
   let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
   await loadTemplate(sec, id); return true;
 }
+// výška lišty pro telefon (náhled grafiky se lepí hned pod ni)
+function setHH() { const hd = document.querySelector('header'); if (hd) document.documentElement.style.setProperty('--hh', hd.offsetHeight + 'px'); }
+window.addEventListener('resize', setHH);
+try { new ResizeObserver(setHH).observe(document.querySelector('header')); } catch (e) {}
 // při vstupu do editoru se upravuje post (1080×1350)
 function openPost() {
   if (!state.boards || state.boards.length < 2) return;
@@ -2854,7 +2872,7 @@ $('#tplSel').addEventListener('change', async e => {
   loadTemplate(sec, id);
 });
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
-  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec).then(fresh => { openPost(); return autoFixture(fresh); });
+  window.scrollTo(0, 0); setSection(t.dataset.sec); setTimeout(setHH, 50); ensureTemplate(t.dataset.sec).then(fresh => { openPost(); return autoFixture(fresh); });
   if (gal.url && !galBlocked() && gal.fixture && !String(gal.fixture).startsWith(t.dataset.sec + ':')) { gal.items = []; gal.folder = ''; gal.folderId = ''; gal.fixture = null; setTimeout(() => galScan(true), 600); }
   document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
   hideHome();
