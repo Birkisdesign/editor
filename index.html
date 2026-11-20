@@ -814,7 +814,7 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
 .tpl-empty p{color:#9aa6bd;margin:0}
 .empty .tips{display:none!important}
 .share-now{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;padding:14px 26px;font-size:17px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
-.gal-none{color:#c9d3e6;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -3224,7 +3224,7 @@ function renderGallery() {
     h('button', { class: 'btn sm', title: 'Změnit připojení Disku', onclick: galConnect }, '⚙')));
   if (gal.folder && gal.items.length) box.append(h('p', { class: 'small gal-path' }, gal.folder + ' · fotek: ' + gal.items.length + ' · nové se načítají samy'));
   if (!gal.busy && !gal.err && !gal.items.length && (gal.notFound || gal.folderId))
-    box.append(h('p', { class: 'small gal-none' }, '📷 Fotky k tomuto zápasu jsem zatím nenašel. Jakmile se nahrají na Disk, objeví se tu samy.'));
+    box.append(h('p', { class: 'small gal-err' }, 'Fotky k tomuto zápasu jsem zatím nenašel. Jakmile se nahrají na Disk, objeví se tu samy.'));
   if (gal.err) box.append(h('p', { class: 'small gal-err' }, gal.err));
   if (gal.busy && !gal.items.length) box.append(h('p', { class: 'small' }, 'Hledám fotky na Disku…'));
   if (!gal.items.length) return;
