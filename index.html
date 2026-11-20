@@ -2838,6 +2838,7 @@ const LOCK_ITER = 150000;
 // účastníci: jméno + otisk hesla (kód BDUSER z „Přidat účastníka“ přidá Claude sem)
 const USERS = [
   { name: 'Birkis', salt: 'xcjtzYjHekCQE7iSo+YbwA==', hash: 'WrMTKF25ZEm2C68Te5l8KQPn3CLUwJNS31b9MsBP7LA=' },
+  { name: 'Andrea', salt: '2VV/ujhnjEBhRlFM+AzuRA==', hash: 'K9AUxbINAfHn42N8ed5nJCUAh5Od5fecryaLoTVTUYY=' },
 ];
 const LOCK = { salt: USERS[0] ? USERS[0].salt : '', hash: USERS[0] ? USERS[0].hash : '', iter: LOCK_ITER }; // nastaví Claude podle kódu z nastavení hesla
 const lockOn = /(^|\.)birkisdesign\.cz$|github\.io$/.test(location.hostname) || /[?&]lock/.test(location.search);
