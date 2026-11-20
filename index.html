@@ -2796,11 +2796,23 @@ async function loadTemplate(sec, id) {
   }
   renderTplPick(sec);
 }
-function ensureTemplate(sec) {
+async function ensureTemplate(sec) {
   renderTplPick(sec);
-  if (state.svg && state.tpl && tplList(sec).some(t => state.tpl === sec + '/' + t.id + '@' + (t.v || 1))) return;
+  if (state.svg && state.tpl && tplList(sec).some(t => state.tpl === sec + '/' + t.id + '@' + (t.v || 1))) return false;
   let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
-  loadTemplate(sec, id);
+  await loadTemplate(sec, id); return true;
+}
+// při otevření editoru nastav nejbližší zápas (dnešní zápas platí do konce dne)
+async function autoFixture(force) {
+  const F = FIXSET[state.section]; if (!F || !state.svg) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const idx = F.list.findIndex(f => { const d = fixDate(f[1]); return d && d >= today; });
+  if (idx < 0) return;
+  let cur = null; try { cur = localStorage.getItem(F.key); } catch (e) {}
+  if (!force && cur === String(idx)) return;
+  try { localStorage.setItem(F.key, String(idx)); } catch (e) {}
+  await applyFixture(idx); renderFixtures(); histReset();
+  if (gal.url && !galBlocked()) galScan(true);
 }
 $('#tplSel').addEventListener('change', async e => {
   const sec = state.section, id = e.target.value;
@@ -2808,7 +2820,7 @@ $('#tplSel').addEventListener('change', async e => {
   loadTemplate(sec, id);
 });
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
-  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec);
+  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec).then(fresh => autoFixture(fresh));
   if (gal.url && !galBlocked() && gal.fixture && !String(gal.fixture).startsWith(t.dataset.sec + ':')) { gal.items = []; gal.folder = ''; gal.folderId = ''; gal.fixture = null; setTimeout(() => galScan(true), 600); }
   document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
   hideHome();
