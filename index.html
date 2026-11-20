@@ -813,6 +813,7 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
 .tpl-empty h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-size:30px;letter-spacing:.02em;margin:0 0 8px}
 .tpl-empty p{color:#9aa6bd;margin:0}
 .empty .tips{display:none!important}
+.share-now{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;padding:14px 26px;font-size:17px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
@@ -876,7 +877,6 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
     <button class="btn icon" id="btnAnim" title="Zapnout / vypnout animaci pozadí">◐</button>
     <button class="btn icon" id="btnLock" title="Zamknout editor" hidden>🔒</button>
     <button class="btn needs" id="btnReset" title="Vrátit všechny změny od otevření">Vrátit změny</button>
-    <button class="btn strong needs" id="btnSvg">Stáhnout SVG</button>
     <button class="btn primary needs" id="btnPng">Stáhnout PNG</button>
     <a class="btn" id="btnLogout" href="/logout" hidden title="Odhlásit se z editoru">Odhlásit</a>
     <input type="file" id="fileSvg" accept=".psd,.psb,.svg,image/svg+xml" hidden>
@@ -3454,17 +3454,59 @@ function exportString(withFonts = true) {
 }
 function fileBase() { const b = state.boards && state.boards.length > 1 ? '-' + state.boards[state.boardIdx].name : ''; return (state.name + b).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_'); }
 function exportSVG() { if (!state.svg) return; download(new Blob([exportString()], { type: 'image/svg+xml' }), fileBase() + '.svg'); }
+function fontCss() { return Object.entries(state.fonts).map(([f, v]) => `@font-face{font-family:"${f}";src:url(${v.url}) format("${v.fmt}");font-weight:1 1000;}`).join(''); }
+function withFontCss(str) {
+  const css = fontCss(); if (!css) return str;
+  return str.replace(/(<svg\b[^>]*>)/, `$1<style id="ge-fonts">${css.replace(/</g, '&lt;')}</style>`);
+}
+async function svgToPng(str, w, h, scale) {
+  const img = new Image();
+  const ok = await new Promise(res => { img.onload = () => res(true); img.onerror = () => res(false); img.src = 'data:image/svg+xml;base64,' + b64(str); });
+  if (!ok) throw new Error('render');
+  await new Promise(r => setTimeout(r, 150));
+  const cv = document.createElement('canvas'); cv.width = Math.round(w * scale); cv.height = Math.round(h * scale);
+  cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+  return await new Promise((res, rej) => { try { cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'); } catch (e) { rej(e); } });
+}
+const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+const safeName = s => String(s).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim();
+async function shareFiles(files) {
+  try { await navigator.share({ files }); return true; }
+  catch (e) {
+    if (e && e.name === 'AbortError') return true;
+    if (e && e.name === 'NotAllowedError') {
+      const b = h('button', { class: 'btn primary share-now' }, 'Uložit do galerie');
+      b.addEventListener('click', async () => { b.remove(); try { await navigator.share({ files }); } catch (er) {} });
+      document.body.append(b); setTimeout(() => b.remove(), 20000); return true;
+    }
+    return false;
+  }
+}
 async function exportPNG() {
   if (!state.svg) return;
-  const scale = 2, img = new Image();
-  const okLoad = await new Promise(res => { img.onload = () => res(true); img.onerror = () => res(false); img.src = 'data:image/svg+xml;base64,' + b64(exportString()); });
-  if (!okLoad) { toast('PNG se nepodařilo vytvořit.'); return; }
-  await new Promise(r => setTimeout(r, 200));
-  const cv = document.createElement('canvas');
-  cv.width = Math.round(state.w * scale); cv.height = Math.round(state.h * scale);
-  cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-  try { cv.toBlob(b => b ? download(b, fileBase() + '.png') : toast('PNG se nepodařilo vytvořit.'), 'image/png'); }
-  catch (e) { toast('PNG nejde vytvořit: grafika obsahuje obrázky z jiného webu. Vlož je přímo do SVG.'); }
+  const btn = $('#btnPng'); if (btn.disabled) return; btn.disabled = true;
+  const old = btn.textContent; btn.textContent = 'Připravuji…';
+  try {
+    const scale = 2, files = [];
+    if (state.boards && state.boards.length) {
+      snapshot();
+      for (let i = 0; i < state.boards.length; i++) {
+        const b = state.boards[i];
+        const str = i === state.boardIdx ? exportString() : withFontCss(b.svg);
+        const blob = await svgToPng(str, b.w, b.h, scale);
+        files.push(new File([blob], safeName(`${state.name} ${state.section === 'muzi' ? 'muži' : state.section === 'zeny' ? 'ženy' : ''} ${b.h > b.w * 1.4 ? 'story' : 'příspěvek'}`) + '.png', { type: 'image/png' }));
+      }
+    } else {
+      files.push(new File([await svgToPng(exportString(), state.w, state.h, scale)], safeName(state.name) + '.png', { type: 'image/png' }));
+    }
+    if (!dlApi && isPhone() && navigator.canShare && navigator.canShare({ files })) {
+      if (await shareFiles(files)) return;
+    }
+    for (const f of files) { await download(f, f.name); await new Promise(r => setTimeout(r, 350)); }
+    toast(files.length > 1 ? `Stažené obrázky: ${files.length}` : 'Obrázek stažen.');
+  } catch (e) {
+    console.error(e); toast('PNG se nepodařilo vytvořit.');
+  } finally { btn.disabled = false; btn.textContent = old; }
 }
 
 /* ---------- autosave ---------- */
@@ -3621,7 +3663,6 @@ function ask(msg, okLabel) {
 }
 $('#btnReset').onclick = async () => { if (state.original && await ask('Vrátit všechny změny do stavu po otevření souboru?', 'Vrátit')) loadSVG(state.original, { keepOriginal: true }); };
 if ($('#btnClose')) $('#btnClose').onclick = async () => { if (await ask('Zavřít grafiku? Pokud chceš změny zachovat, stáhni si ji předtím jako SVG.', 'Zavřít')) closeDoc(); };
-$('#btnSvg').onclick = exportSVG;
 $('#btnPng').onclick = exportPNG;
 stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drag'); });
 stage.addEventListener('dragleave', e => { if (e.target === stage) stage.classList.remove('drag'); });
