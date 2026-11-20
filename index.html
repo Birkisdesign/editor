@@ -2110,8 +2110,10 @@ function fitHeightEl(el, root, aspect) {
   if (!el.hasAttribute('data-ge-frame0')) el.setAttribute('data-ge-frame0', `${f0.x} ${f0.y} ${f0.w} ${f0.h}`);
   resetPosEl(el);
   const [vx, vy, vw, vh] = vbOf(root);
-  const w = vh * (aspect || vw / vh);
-  const f = { x: vx + (vw - w) / 2, y: vy, w, h: vh };
+  // výška = výška plátna; když by fotka (na výšku) byla užší než plátno, roztáhne se na šířku plátna
+  const a = aspect || vw / vh; let w = vh * a, hh = vh;
+  if (w < vw) { w = vw; hh = vw / a; }
+  const f = { x: vx + (vw - w) / 2, y: vy + (vh - hh) / 2, w, h: hh };
   dropOwnClip(el, root);
   setFrameEl(el, root, f);
   el.setAttribute('data-ge-orig', `${r2(f.x)} ${r2(f.y)} ${r2(f.w)} ${r2(f.h)}`);
