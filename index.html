@@ -2747,14 +2747,14 @@ function setSection(sec) {
 }
 /* ---------- grafiky (šablony) ---------- */
 const TEMPLATES = {
-  zeny: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-zeny.json' }],
-  muzi: [{ id: 'fulltime', name: 'Fulltime', file: 'templates/fulltime-muzi.json' }]
+  zeny: [{ id: 'fulltime', v: 2, name: 'Fulltime', file: 'templates/fulltime-zeny.json' }],
+  muzi: [{ id: 'fulltime', v: 2, name: 'Fulltime', file: 'templates/fulltime-muzi.json' }]
 };
 function tplList(sec) { return TEMPLATES[sec] || []; }
 function renderTplPick(sec) {
   const L = tplList(sec), sel = $('#tplSel');
   sel.innerHTML = ''; L.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; sel.append(o); });
-  if (state.tpl && state.tpl.startsWith(sec + '/')) sel.value = state.tpl.split('/')[1];
+  if (state.tpl && state.tpl.startsWith(sec + '/')) sel.value = state.tpl.split('/')[1].split('@')[0];
   $('#tplGroup').hidden = L.length < 2;
 }
 async function loadTemplate(sec, id) {
@@ -2772,7 +2772,7 @@ async function loadTemplate(sec, id) {
     const d = await r.json(); busy(true, 'Připravuji plátna…', 0.8);
     state.persp = null;
     state.boards = d.boards.map(b => ({ name: b.name, w: b.w, h: b.h, svg: b.svg, original: b.svg }));
-    state.boardIdx = 0; state.tpl = sec + '/' + t.id;
+    state.boardIdx = 0; state.tpl = sec + '/' + t.id + '@' + (t.v || 1);
     try { localStorage.setItem('ge-tpl-' + sec, t.id); } catch (e) {}
     loadSVG(state.boards[0].svg, { name: t.name, keepBoards: true });
     renderBoards(); await checkFonts(); busy(false); saveNow(); histReset();
@@ -2784,13 +2784,13 @@ async function loadTemplate(sec, id) {
 }
 function ensureTemplate(sec) {
   renderTplPick(sec);
-  if (state.svg && state.tpl && state.tpl.startsWith(sec + '/')) return;
+  if (state.svg && state.tpl && tplList(sec).some(t => state.tpl === sec + '/' + t.id + '@' + (t.v || 1))) return;
   let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
   loadTemplate(sec, id);
 }
 $('#tplSel').addEventListener('change', async e => {
   const sec = state.section, id = e.target.value;
-  if (state.tpl === sec + '/' + id) return;
+  if (state.tpl && state.tpl.split('@')[0] === sec + '/' + id) return;
   loadTemplate(sec, id);
 });
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
