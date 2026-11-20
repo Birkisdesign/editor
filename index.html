@@ -828,6 +828,12 @@ html{background:#05070b}
   .stage{top:var(--hh,calc(62px + env(safe-area-inset-top)))!important}
   aside{padding-bottom:calc(40px + env(safe-area-inset-bottom))!important}
   .lock{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  /* Safari kreslí pod lišty jen když u okrajů není žádný „fixed“ prvek → pozadí jako běžná vrstva */
+  .home > .bgfx{position:absolute!important;inset:0!important}
+  .app{position:relative}
+  #stage > .bgfx{position:absolute!important;inset:0!important}
+  .toast:not(.show){display:none}
+  .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
 </style>
 </head>
