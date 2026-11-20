@@ -877,7 +877,7 @@ header .sec-badge{background:linear-gradient(90deg,#fff,#c9dbff)!important;-webk
     <span class="hspace"></span>
     <button class="btn icon" id="btnAnim" title="Zapnout / vypnout animaci pozadí">◐</button>
     <button class="btn icon" id="btnLock" title="Zamknout editor" hidden>🔒</button>
-    <button class="btn needs" id="btnReset" title="Vrátit všechny změny od otevření">Vrátit změny</button>
+    <button class="btn needs" id="btnReset" title="Vrátit o krok zpět (Cmd+Z)">Vrátit změny</button>
     <button class="btn primary needs" id="btnPng">Stáhnout PNG</button>
     <a class="btn" id="btnLogout" href="/logout" hidden title="Odhlásit se z editoru">Odhlásit</a>
     <input type="file" id="fileSvg" accept=".psd,.psb,.svg,image/svg+xml" hidden>
@@ -3789,7 +3789,7 @@ function ask(msg, okLabel) {
     document.body.append(bg);
   });
 }
-$('#btnReset').onclick = async () => { if (state.original && await ask('Vrátit všechny změny do stavu po otevření souboru?', 'Vrátit')) loadSVG(state.original, { keepOriginal: true }); };
+$('#btnReset').onclick = () => undo();
 if ($('#btnClose')) $('#btnClose').onclick = async () => { if (await ask('Zavřít grafiku? Pokud chceš změny zachovat, stáhni si ji předtím jako SVG.', 'Zavřít')) closeDoc(); };
 $('#btnPng').onclick = exportPNG;
 stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drag'); });
