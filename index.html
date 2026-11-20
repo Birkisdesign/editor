@@ -2210,6 +2210,18 @@ function flushSync() {
       else if (op.type === 'orig' && el.localName === 'image') { if (restorePhotoEl(el, root, origHrefFor(el, b.original))) touched = true; }
       else if (op.type === 'fith' && el.localName === 'image') { fitHeightEl(el, root, op.val); touched = true; }
       else if (op.type === 'center' && el.localName === 'image') { centerYEl(el, root); touched = true; }
+      else if (op.type === 'pan' && el.localName === 'image') {
+        const og = el.getAttribute('data-ge-orig'); const pp = og ? og.split(' ').map(Number) : [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')];
+        const o = { x: pp[0], y: pp[1], w: pp[2], h: pp[3] }; if (!o.w || !o.h) continue;
+        const { zoom, ox, oy } = op.val, nw = o.w * zoom, nh = o.h * zoom;
+        el.setAttribute('x', r2(o.x + (o.w - nw) / 2 + ox / 100 * o.w)); el.setAttribute('y', r2(o.y + (o.h - nh) / 2 + oy / 100 * o.h));
+        el.setAttribute('width', r2(nw)); el.setAttribute('height', r2(nh));
+        const custom = zoom !== 1 || ox || oy;
+        if (custom && !el.hasAttribute('clip-path')) ensureClipEl(el, root, o);
+        setData(el, 'orig', `${o.x} ${o.y} ${o.w} ${o.h}`, custom);
+        setData(el, 'zoom', r2(zoom), custom); setData(el, 'ox', r2(ox), custom); setData(el, 'oy', r2(oy), custom);
+        updateTwinEl(el, root); touched = true;
+      }
       else if (op.type === 'meet' && el.localName === 'image') { fillEl(el, root, 'meet'); touched = true; }
       else if ((op.type === 'fill' || op.type === 'reset') && el.localName === 'image') { (op.type === 'fill' ? fillEl : resetEl)(el, root); touched = true; }
       else if (op.type === 'img' && el.localName === 'image') {
@@ -2246,6 +2258,7 @@ function applyImage(it) {
   setData(el, 'orig', `${x} ${y} ${w} ${hh}`, custom);
   setData(el, 'zoom', r2(it.zoom), custom); setData(el, 'ox', r2(it.ox), custom); setData(el, 'oy', r2(it.oy), custom);
   updateTwin(it);
+  queueSync(it, 'pan', { zoom: it.zoom, ox: it.ox, oy: it.oy });
 }
 function prepareImage(file) {
   return new Promise((res, rej) => {
@@ -2803,6 +2816,12 @@ async function ensureTemplate(sec) {
   let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
   await loadTemplate(sec, id); return true;
 }
+// při vstupu do editoru se upravuje post (1080×1350)
+function openPost() {
+  if (!state.boards || state.boards.length < 2) return;
+  const i = state.boards.findIndex(b => b.h < b.w * 1.4);
+  if (i >= 0 && i !== state.boardIdx) switchBoard(i);
+}
 // při otevření editoru nastav nejbližší zápas (dnešní zápas platí do konce dne)
 async function autoFixture(force) {
   const F = FIXSET[state.section]; if (!F || !state.svg) return;
@@ -2821,7 +2840,7 @@ $('#tplSel').addEventListener('change', async e => {
   loadTemplate(sec, id);
 });
 document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
-  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec).then(fresh => autoFixture(fresh));
+  setSection(t.dataset.sec); ensureTemplate(t.dataset.sec).then(fresh => { openPost(); return autoFixture(fresh); });
   if (gal.url && !galBlocked() && gal.fixture && !String(gal.fixture).startsWith(t.dataset.sec + ':')) { gal.items = []; gal.folder = ''; gal.folderId = ''; gal.fixture = null; setTimeout(() => galScan(true), 600); }
   document.body.classList.remove('enter'); void document.body.offsetWidth; document.body.classList.add('enter');
   hideHome();
