@@ -862,6 +862,15 @@ html{background:#05070b}
 #guides i{position:fixed;display:none;pointer-events:none;z-index:30;background:#ff3fa4;box-shadow:0 0 0 .5px rgba(0,0,0,.4)}
 #guides .gv{width:1px;margin-left:-.5px}
 #guides .gh{height:1px;margin-top:-.5px}
+#galPrev{position:fixed;z-index:40;display:grid;place-items:center;background:rgba(5,7,11,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:gpIn .18s ease-out}
+#galPrev.full{inset:0;padding:calc(16px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom))}
+#galPrev .gp-in{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:100%;max-height:100%;padding:16px;box-sizing:border-box}
+#galPrev img{max-width:100%;max-height:calc(100% - 40px);object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);cursor:pointer;min-height:0}
+#galPrev.full img{max-height:calc(100vh - 120px)}
+#galPrev:not(.full) img{max-height:calc(100vh - 220px)}
+#galPrev p{margin:0;color:#c9d3e6;font-size:13px;text-align:center}
+.gal-it.prev{border-color:#ff3fa4}
+@keyframes gpIn{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -3365,6 +3374,31 @@ function galPump() {
   }
 }
 const galIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { galIO.unobserve(e.target); galLoad(e.target); } }), { rootMargin: '200px' }) : null;
+/* náhled fotky přes celý editor: klik na náhled = použít, znovu na miniaturu / vedle = zavřít */
+function closeGalPrev() {
+  const o = document.getElementById('galPrev'); if (o) o.remove();
+  document.querySelectorAll('.gal-it.prev').forEach(x => x.classList.remove('prev'));
+  gal.prev = null;
+}
+function galPreview(it, btn) {
+  if (gal.prev === it.id) { closeGalPrev(); return; }
+  closeGalPrev(); gal.prev = it.id; btn.classList.add('prev');
+  const phone = window.matchMedia('(max-width: 880px)').matches;
+  const o = h('div', { id: 'galPrev', class: phone ? 'full' : '' });
+  if (!phone) { const r = $('#stage').getBoundingClientRect(); Object.assign(o.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); }
+  const img = h('img', { alt: it.name, title: 'Použít tuto fotku' });
+  const small = btn.querySelector('img'); if (small && small.src) img.src = small.src;
+  const hint = h('p', {}, phone ? 'Klepni na fotku pro použití · klepnutím vedle zavřeš' : 'Klikni na fotku pro použití · kliknutím vedle nebo znovu na miniaturu zavřeš');
+  o.append(h('div', { class: 'gp-in' }, img, hint));
+  img.addEventListener('click', ev => { ev.stopPropagation(); closeGalPrev(); galUse(it, btn); });
+  o.addEventListener('click', closeGalPrev);
+  document.body.append(o);
+  gal.big = gal.big || new Map();
+  const pb = gal.big.get(it.id) || gas({ a: 'img', id: it.id, sz: 1600 }).then(j => `data:${j.mime};base64,${j.data}`).catch(() => '');
+  gal.big.set(it.id, pb);
+  pb.then(u => { if (u && gal.prev === it.id) img.src = u; });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && gal.prev) closeGalPrev(); });
 async function galUse(it, btn) {
   const ph = photoItem(); if (!ph) return toast('V grafice není fotka k výměně.');
   btn.classList.add('busy');
@@ -3407,7 +3441,7 @@ function renderGallery() {
   gal.items.slice(0, gal.shown).forEach(it => {
     const img = h('img', { alt: it.name }); img._it = it;
     const b = h('button', { class: 'gal-it', title: it.name }, img);
-    b.addEventListener('click', () => galUse(it, b));
+    b.addEventListener('click', () => galPreview(it, b));
     grid.append(b);
     gal.thumbs.has(it.id) ? gal.thumbs.get(it.id).then(u => { if (u) img.src = u; }) : (galIO ? galIO.observe(img) : galLoad(img));
   });
