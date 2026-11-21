@@ -3365,7 +3365,7 @@ async function galScan(reset) {
   const F = fx(); let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
   if (!(i >= 0 && F.list[i])) { gal.err = 'Nejdřív vyber zápas v panelu Zápasy.'; gal.items = []; renderGallery(); return; }
   const fk = state.section + ':' + i, changedFix = gal.fixture !== fk;
-  if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; gal.notFound = false; gal.scores = null; }
+  if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; gal.notFound = false; gal.scores = null; gal.excluded = null; gal.showExcl = false; }
   const st = matchStart(state.section, i);
   if (st && Date.now() < st.getTime() - 3600e3) { gal.fixture = fk; gal.items = []; gal.folder = ''; gal.folderId = ''; gal.err = ''; gal.notFound = true; renderGallery(); return; }
   gal.fixture = fk; gal.busy = true; gal.err = ''; renderGallery();
@@ -3450,8 +3450,8 @@ async function analyzePhoto(det, url) {
   return { P, act };
 }
 // 2. průchod: ohodnoť fotku (olc = barvy, které nosí Olomouc v tomto zápase)
-function scoreAnalysis(A, olc) {
-  const P = A.P; if (!P.length) return 0;
+function scoreAnalysis(A, olc, darkKit) {
+  const P = A.P; if (!P.length) return -1;
   const isOl = q => olc.includes(q.cat), main = P[0];
   const sh = Math.max(0, Math.min(1, (Math.log((main.sharp || 0) + 1) - Math.log(600)) / (Math.log(5000) - Math.log(600))));
   const near = q => Math.hypot((q.x + q.w / 2) - (main.x + main.w / 2), (q.y + q.h / 2) - (main.y + main.h / 2)) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5;
@@ -3460,9 +3460,9 @@ function scoreAnalysis(A, olc) {
   const q = (main.prom * 3 + sh * 1.0 + (main.complete ? .3 : 0)) * crowd; // velikost v popředí má největší váhu
   const good = sh >= .35 && main.prom >= .5; // dost ostrý a dost v popředí
   // jen zápasové fotky: hlavní postava musí být v dresu (ne oblek/bunda) a nesmí to být hlouček (oslava, nástup, focení)
-  const inKit = main.cat !== 'dark';
+  const inKit = main.cat !== 'dark' || darkKit; // tmavé oblečení je dres jen když soupeř hraje v tmavém
   const huddle = P.filter(o => o.prom > .35).length >= 5;
-  if (!inKit || huddle) return .5 + q * .2;
+  if (!inKit || huddle) return -1; // není zápasová fotka → vynechat
   // 1. přednost: hlavní hráč je z Olomouce (a fotka je kvalitní)
   if (isOl(main)) return (good ? 10 : 4) + q + (P.slice(1).some(o => !isOl(o) && near(o)) ? .3 : 0);
   // 2. až potom: hlavní hráč je soupeř (lépe v souboji s hráčem Olomouce)
@@ -3492,10 +3492,17 @@ function galRank(fk) {
   const F = fx(), fi = +String(fk).split(':')[1], home = F.list[fi] && F.list[fi][2] === 'FBS Olomouc';
   const list = gal.items.map(it => ({ it, A: galAn.map[it.id] })).filter(x => x.A);
   const olc = olomoucColors(list.map(x => x.A), home);
-  list.forEach(x => x.s = scoreAnalysis(x.A, olc));
-  list.sort((a, b) => b.s - a.s);
-  gal.scores = new Map(list.map(x => [x.it.id, x.s]));
-  return list;
+  // hraje soupeř v tmavém dresu? (tmaví hráči jsou často v souboji s Olomoucí)
+  let dk = 0, dn = 0;
+  list.forEach(({ A }) => A.P.filter(q => q.cat === 'dark' && q.prom > .35).forEach(q => {
+    dn++; if (A.P.some(o => olc.includes(o.cat) && Math.hypot((o.x + o.w / 2) - (q.x + q.w / 2), (o.y + o.h / 2) - (q.y + q.h / 2)) < Math.max(q.w, q.h) * .8)) dk++;
+  }));
+  const darkKit = dn >= 3 && dk / dn >= .3;
+  list.forEach(x => x.s = scoreAnalysis(x.A, olc, darkKit));
+  gal.excluded = new Set([...list.filter(x => x.s < 0).map(x => x.it.id), ...gal.items.filter(it => !isPhotoName(it.name)).map(it => it.id)]);
+  const ok = list.filter(x => x.s >= 0).sort((a, b) => b.s - a.s);
+  gal.scores = new Map(ok.map(x => [x.it.id, x.s]));
+  return ok;
 }
 function galAutoMaybe(fk, i) {
   if (!gal.items.length || gal.autoRun) return;
@@ -3645,7 +3652,8 @@ function renderGallery() {
   if (!gal.items.length) return;
   const grid = h('div', { class: 'gal-grid' });
   const sc = gal.scores || new Map();
-  const ordered = gal.items.slice().sort((a, b) => (sc.has(b.id) ? sc.get(b.id) : -1) - (sc.has(a.id) ? sc.get(a.id) : -1));
+  const ex = gal.excluded || new Set();
+  const ordered = gal.items.filter(it => gal.showExcl || !ex.has(it.id)).sort((a, b) => (sc.has(b.id) ? sc.get(b.id) : -1) - (sc.has(a.id) ? sc.get(a.id) : -1));
   ordered.slice(0, gal.shown).forEach(it => {
     const img = h('img', { alt: '' }); img._it = it;
     const b = h('button', { class: 'gal-it' + (ordered[0] === it && sc.has(it.id) ? ' best' : ''), title: it.name }, img);
@@ -3654,7 +3662,8 @@ function renderGallery() {
     gal.thumbs.has(it.id) ? gal.thumbs.get(it.id).then(u => { if (u) img.src = u; }) : (galIO ? galIO.observe(img) : galLoad(img));
   });
   box.append(grid);
-  if (gal.items.length > gal.shown) box.append(h('button', { class: 'btn sm', style: 'width:100%;margin-top:6px', onclick: () => { gal.shown += 60; renderGallery(); } }, `Zobrazit další (${gal.items.length - gal.shown})`));
+  if (ex.size) box.append(h('button', { class: 'btn sm', style: 'width:100%;margin-top:6px', onclick: () => { gal.showExcl = !gal.showExcl; renderGallery(); } }, gal.showExcl ? 'Skrýt nezápasové fotky' : `Zobrazit vynechané nezápasové fotky (${ex.size})`));
+  if (ordered.length > gal.shown) box.append(h('button', { class: 'btn sm', style: 'width:100%;margin-top:6px', onclick: () => { gal.shown += 60; renderGallery(); } }, `Zobrazit další (${ordered.length - gal.shown})`));
 }
 function galTick() {
   clearTimeout(gal.timer);
