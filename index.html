@@ -3560,12 +3560,13 @@ function closeGalPrev() {
 function galPreview(it, btn) {
   if (gal.prev === it.id) { closeGalPrev(); return; }
   closeGalPrev(); gal.prev = it.id; btn.classList.add('prev');
-  const phone = window.matchMedia('(max-width: 880px)').matches;
+  const phone = window.matchMedia('(hover: none)').matches; // přes celý displej jen na dotykových zařízeních
   const o = h('div', { id: 'galPrev', class: phone ? 'full' : '' });
   if (!phone) {
     const r = $('#stage').getBoundingClientRect(), ar = document.querySelector('aside').getBoundingClientRect();
     const right = ar.left > r.left + 100 ? Math.min(r.right, ar.left) : r.right;
-    Object.assign(o.style, { left: r.left + 'px', top: r.top + 'px', width: (right - r.left) + 'px', height: r.height + 'px' });
+    const top = Math.max(r.top, document.querySelector('header').getBoundingClientRect().bottom), bottom = Math.min(r.bottom, innerHeight);
+    Object.assign(o.style, { left: r.left + 'px', top: top + 'px', width: (right - r.left) + 'px', height: Math.max(200, bottom - top) + 'px' });
   }
   const img = h('img', { alt: it.name, title: 'Použít tuto fotku' });
   const small = btn.querySelector('img'); if (small && small.src) img.src = small.src;
