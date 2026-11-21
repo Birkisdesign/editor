@@ -8,7 +8,14 @@ UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
 OUT = 'cf.json'
 
 def get(path):
-    req = urllib.request.Request('https://www.ceskyflorbal.cz' + path, headers={'User-Agent': UA, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'cs-CZ,cs;q=0.9'})
+    url = 'https://www.ceskyflorbal.cz' + path
+    try:
+        from curl_cffi import requests as cr  # TLS otisk jako Chrome (Cloudflare jinak odmítá)
+        r = cr.get(url, impersonate='chrome', timeout=30, headers={'Accept-Language': 'cs-CZ,cs;q=0.9'})
+        if r.status_code != 200: raise RuntimeError(f'{r.status_code} {r.headers.get("cf-mitigated", "")} {r.headers.get("server", "")}')
+        return r.text
+    except ImportError: pass
+    req = urllib.request.Request(url, headers={'User-Agent': UA, 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'cs-CZ,cs;q=0.9'})
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode('utf-8', 'replace')
 

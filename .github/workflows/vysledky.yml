@@ -16,4 +16,5 @@ jobs:
     timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
+      - run: pip install -q curl_cffi
       - run: python3 tools/cf.py
