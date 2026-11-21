@@ -3195,6 +3195,7 @@ function renderFixtures() {
   });
   const sel = h('div', { class: 'fix-wrap' }, btn, list);
   const card = h('div', { class: 'card fix-card' }, sel);
+  if (cf.err && !cf.old) card.append(h('p', { class: 'fix-note' }, 'Web ceskyflorbal.cz teď skriptu odmítl data (' + cf.err + ').'));
   if (cf.old) card.append(h('p', { class: 'fix-note' }, 'Výsledky z ceskyflorbal.cz se načtou po aktualizaci Apps Scriptu (nový kód + Nasadit → Spravovat nasazení → Nová verze).'));
   box.append(h('h2', {}, 'Zápasy', h('span', {}, F.title)), card);
 }
@@ -3261,9 +3262,11 @@ async function cfSync(sec, force) {
   cf.at[sec] = Date.now();
   try {
     const j = await gas({ a: 'cf', t: 'list', id: CF_CODE[sec] });
+    cf.err = '';
     if (cfMerge(sec, j.items)) { cfSave(sec); if (sec === state.section) renderFixtures(); }
   } catch (e) {
     if (/akce/.test(e.message || '')) { cf.old = true; if (sec === state.section) renderFixtures(); }
+    else if (/ceskyflorbal/.test(e.message || '')) { cf.err = e.message.replace(/^Chyba skriptu:\s*(Error:\s*)?/, ''); if (sec === state.section) renderFixtures(); }
   }
 }
 // zvolený zápas: když se hraje (nebo už skončil a ještě nebyl načten), vezmi skóre a třetiny z webu
