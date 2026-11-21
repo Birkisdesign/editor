@@ -108,7 +108,7 @@ textarea:focus,input[type=number]:focus,select:focus{border-color:var(--accent)}
 .gal-it{position:relative;aspect-ratio:3/2;padding:0;border:2px solid transparent;border-radius:7px;overflow:hidden;background:#0b0d11;cursor:pointer}
 .gal-it img{width:100%;height:100%;object-fit:cover;display:block}
 .gal-it:hover{border-color:rgba(255,255,255,.35)}.gal-it.on{border-color:var(--accent,#4c8dff)}
-.gal-it.busy{opacity:.5}.gal-it.bad{display:none}
+.gal-it.gal-load{opacity:.5}.gal-it.bad{display:none}
 .fix-opt.on{outline:1px solid var(--accent,#4c8dff)}.fix-card .small{margin:8px 0 0}
 .font-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-bottom:6px}
 .font-row .fn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3583,7 +3583,7 @@ function galPreview(it, btn) {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && gal.prev) closeGalPrev(); });
 async function galUse(it, btn) {
   const ph = photoItem(); if (!ph) return toast('V grafice není fotka k výměně.');
-  btn.classList.add('busy');
+  btn.classList.add('gal-load');
   try {
     const j = await gas({ a: 'img', id: it.id, sz: 2400 });
     const bin = atob(j.data), arr = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
@@ -3591,7 +3591,7 @@ async function galUse(it, btn) {
     await photoFitHeight(photoItem() || ph);
     document.querySelectorAll('.gal-it.on').forEach(x => x.classList.remove('on')); btn.classList.add('on');
   } catch (e) { toast('Fotku se nepodařilo načíst z Disku.'); }
-  btn.classList.remove('busy');
+  btn.classList.remove('gal-load');
 }
 function renderGallery() {
   const box = $('#gallery'); if (!box) return;
