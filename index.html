@@ -880,6 +880,7 @@ html{background:#05070b}
 
 .ge-svg{clip-path:inset(0)}
 .gal-auto{color:#9fc2ff}
+.gal-it.best::after{content:'★ nejlepší';position:absolute;left:4px;top:4px;font:600 10px/1 system-ui,sans-serif;color:#1a1200;background:#ffd34d;padding:3px 5px;border-radius:5px}
 </style>
 </head>
 <body>
@@ -3364,7 +3365,7 @@ async function galScan(reset) {
   const F = fx(); let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
   if (!(i >= 0 && F.list[i])) { gal.err = 'Nejdřív vyber zápas v panelu Zápasy.'; gal.items = []; renderGallery(); return; }
   const fk = state.section + ':' + i, changedFix = gal.fixture !== fk;
-  if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; gal.notFound = false; }
+  if (reset || changedFix) { gal.items = []; gal.shown = 60; gal.folder = ''; gal.folderId = ''; gal.notFound = false; gal.scores = null; }
   const st = matchStart(state.section, i);
   if (st && Date.now() < st.getTime() - 3600e3) { gal.fixture = fk; gal.items = []; gal.folder = ''; gal.folderId = ''; gal.err = ''; gal.notFound = true; renderGallery(); return; }
   gal.fixture = fk; gal.busy = true; gal.err = ''; renderGallery();
@@ -3478,13 +3479,66 @@ function olomoucColors(analyses, home) {
   if (n && red / n > .08 && white / n > .08 && other / n < .15) return home ? ['red'] : ['white'];
   return ['red', 'white'];
 }
+// průběžné hodnocení všech fotek zápasu; výsledky se ukládají, aby se nemusely počítat znovu
+const galAn = { fk: null, map: {} };
+function anLoad(fk) {
+  if (galAn.fk === fk) return; galAn.fk = fk; galAn.map = {};
+  try { galAn.map = JSON.parse(localStorage.getItem('ge-an-' + fk) || '{}'); } catch (e) {}
+}
+function anSave(fk) { try { localStorage.setItem('ge-an-' + fk, JSON.stringify(galAn.map)); } catch (e) {} }
+const isPhotoName = n => /\.(jpe?g|heic|webp|png)$/i.test(n) && !/preview|4x5|plakat|grafika/i.test(n);
+function galRank(fk) {
+  // seřadí hodnocené fotky od nejlepší; vrátí [{it, s, A}]
+  const F = fx(), fi = +String(fk).split(':')[1], home = F.list[fi] && F.list[fi][2] === 'FBS Olomouc';
+  const list = gal.items.map(it => ({ it, A: galAn.map[it.id] })).filter(x => x.A);
+  const olc = olomoucColors(list.map(x => x.A), home);
+  list.forEach(x => x.s = scoreAnalysis(x.A, olc));
+  list.sort((a, b) => b.s - a.s);
+  gal.scores = new Map(list.map(x => [x.it.id, x.s]));
+  return list;
+}
 function galAutoMaybe(fk, i) {
   if (!gal.items.length || gal.autoRun) return;
-  let done = null; try { done = localStorage.getItem('ge-auto-' + fk); } catch (e) {}
-  if (done) return;
+  anLoad(fk);
+  const todo = gal.items.filter(it => !galAn.map[it.id] && isPhotoName(it.name));
+  if (todo.length) analyzeNew(fk, i, todo); else applyBest(fk, i, false);
+}
+async function analyzeNew(fk, i, todo) {
+  gal.autoRun = { done: 0, all: todo.length }; renderGallery();
+  try {
+    const det = await loadDetector();
+    const thumbRetry = async it => { for (let t = 0; t < 3; t++) { const u = await thumbFor(it); if (u) return u; await new Promise(r => setTimeout(r, 1200 * (t + 1))); } return ''; };
+    const urls = todo.map(() => null); let next = 0;
+    const fetcher = async () => { while (next < todo.length && gal.fixture === fk) { const k = next++; urls[k] = thumbRetry(todo[k]); await urls[k]; } };
+    const pool = Array.from({ length: 6 }, fetcher);
+    for (let k = 0; k < todo.length; k++) {
+      if (gal.fixture !== fk) return;
+      while (!urls[k]) await new Promise(r => setTimeout(r, 50));
+      const u = await urls[k];
+      if (u) { try { galAn.map[todo[k].id] = await analyzePhoto(det, u); } catch (e) {} }
+      gal.autoRun.done++; const el = document.getElementById('galAutoSt'); if (el) el.textContent = `Hodnotím fotky… ${gal.autoRun.done}/${gal.autoRun.all}`;
+      if (k % 8 === 7) anSave(fk);
+    }
+    await Promise.all(pool);
+    anSave(fk);
+  } catch (e) { console.warn(e); }
+  finally { gal.autoRun = null; }
+  if (gal.fixture === fk) applyBest(fk, i, false);
+}
+async function applyBest(fk, i, force) {
+  const ranked = galRank(fk); renderGallery();
+  if (!ranked.length) return;
   const st = matchStart(state.section, i), past = st && Date.now() > st.getTime() + 3 * 3600e3;
-  if (gal.items.length < 8 && !past) return; // během zápasu počkej na víc fotek
-  autoPick(fk, false);
+  if (!force && ranked.length < 8 && !past) return; // během zápasu počkej na víc fotek
+  let manual = null, used = null; try { manual = localStorage.getItem('ge-manual-' + fk); used = localStorage.getItem('ge-auto-' + fk); } catch (e) {}
+  if (manual && !force) return; // vybral sis fotku sám → neměnit
+  const best = ranked[0];
+  if (!force && used === best.it.id) return;
+  try { localStorage.setItem('ge-auto-' + fk, best.it.id); localStorage.removeItem('ge-manual-' + fk); } catch (e) {}
+  const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.it.name) || document.createElement('button');
+  await galUse(best.it, btn);
+  if (best.A.act) placeAction(best.A.act);
+  toast(best.s >= 10 ? 'Vybral jsem nejlepší fotku s hráčem Olomouce v popředí.' : best.s >= 5 ? 'Vybral jsem souboj, v popředí je soupeř.' : 'Dobrou fotku s Olomoucí v popředí jsem zatím nenašel, vybral jsem nejlepší dostupnou.');
 }
 function placeAction(act) {
   const ph = photoItem(); if (!ph) return;
@@ -3495,40 +3549,11 @@ function placeAction(act) {
   queueSync(ph, 'act', act); changed(); updateOverlay();
 }
 async function autoPick(fk, manual) {
-  if (gal.autoRun) return; gal.autoRun = { done: 0, all: 0 }; renderGallery();
-  try {
-    const det = await loadDetector();
-    // nejvýš 48 fotek rovnoměrně z celé složky, miniatury se stahují po 6 najednou
-    const jp = gal.items.filter(it => /\.(jpe?g|heic|webp)$/i.test(it.name)), all = jp.length ? jp : gal.items, step = Math.max(1, all.length / 48), cand = [];
-    for (let k = 0; k < all.length && cand.length < 48; k += step) cand.push(all[Math.floor(k)]);
-    gal.autoRun.all = cand.length;
-    const urls = cand.map(() => null); let next = 0;
-    const thumbRetry = async it => { for (let t = 0; t < 3; t++) { const u = await thumbFor(it); if (u) return u; await new Promise(r => setTimeout(r, 1200 * (t + 1))); } return ''; };
-    const fetcher = async () => { while (next < cand.length && gal.fixture === fk) { const k = next++; urls[k] = thumbRetry(cand[k]); await urls[k]; } };
-    const pool = Array.from({ length: 6 }, fetcher);
-    const an = [];
-    for (let k = 0; k < cand.length; k++) {
-      if (gal.fixture !== fk) return;
-      while (!urls[k]) await new Promise(r => setTimeout(r, 50));
-      const u = await urls[k];
-      if (u) { try { an[k] = await analyzePhoto(det, u); } catch (e) {} }
-      gal.autoRun.done++; const el = document.getElementById('galAutoSt'); if (el) el.textContent = `Vybírám fotku… ${gal.autoRun.done}/${gal.autoRun.all}`;
-    }
-    await Promise.all(pool);
-    const F = fx(), fi = +String(fk).split(':')[1], home = F.list[fi] && F.list[fi][2] === 'FBS Olomouc';
-    const olc = olomoucColors(an, home);
-    let best = null, bestS = -1; window.__autoLog = [];
-    an.forEach((A, k) => { if (!A) return; const sc = scoreAnalysis(A, olc); window.__autoLog.push([cand[k].name, +sc.toFixed(2), A.P.map(q => q.cat + ':' + q.prom.toFixed(2) + `(${q.c.red.toFixed(2)}/${q.c.white.toFixed(2)}/${q.c.other.toFixed(2)})`).join(' '), Math.round(A.P[0] ? A.P[0].sharp || 0 : 0)]); if (sc > bestS) { bestS = sc; best = cand[k]; } });
-    window.__autoOlc = olc;
-    if (!best || gal.fixture !== fk) return;
-    try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
-    const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.name) || document.createElement('button');
-    await galUse(best, btn);
-    const bestA = an[cand.indexOf(best)]; if (bestA && bestA.act) placeAction(bestA.act);
-    toast(bestS >= 10 ? 'Vybral jsem fotku s hráčem Olomouce v popředí.' : bestS >= 5 ? 'Vybral jsem souboj, v popředí je soupeř.' : 'Dobrou fotku s Olomoucí v popředí jsem nenašel, vybral jsem nejlepší s hráčem soupeře.')
-  } catch (e) {
-    if (manual) toast('Automatický výběr fotky se nepodařilo spustit.');
-  } finally { gal.autoRun = null; renderGallery(); }
+  const i = +String(fk).split(':')[1];
+  anLoad(fk);
+  const todo = gal.items.filter(it => !galAn.map[it.id] && isPhotoName(it.name));
+  if (todo.length) await analyzeNew(fk, i, todo);
+  await applyBest(fk, i, true);
 }
 function thumbFor(it) {
   if (gal.thumbs.has(it.id)) return gal.thumbs.get(it.id);
@@ -3569,7 +3594,7 @@ function galPreview(it, btn) {
   const small = btn.querySelector('img'); if (small && small.src) img.src = small.src;
   const hint = h('p', {}, phone ? 'Klepni na fotku pro použití · klepnutím vedle zavřeš' : 'Klikni na fotku pro použití · kliknutím vedle nebo znovu na miniaturu zavřeš');
   o.append(h('div', { class: 'gp-in' }, img, hint));
-  img.addEventListener('click', ev => { ev.stopPropagation(); closeGalPrev(); galUse(it, btn); });
+  img.addEventListener('click', ev => { ev.stopPropagation(); closeGalPrev(); try { localStorage.setItem('ge-manual-' + gal.fixture, it.id); } catch (e) {} galUse(it, btn); });
   o.addEventListener('click', closeGalPrev);
   document.body.append(o);
   gal.big = gal.big || new Map();
@@ -3612,16 +3637,18 @@ function renderGallery() {
     DRIVE_CFG ? '' : h('button', { class: 'btn sm', title: 'Připojení Disku pro všechna zařízení', onclick: galShare }, '📱 Všude'),
     h('button', { class: 'btn sm', title: 'Změnit připojení Disku', onclick: galConnect }, '⚙')));
   if (gal.folder && gal.items.length) box.append(h('p', { class: 'small gal-path' }, gal.folder + ' · fotek: ' + gal.items.length + ' · nové se načítají samy'));
-  if (gal.autoRun) box.append(h('p', { class: 'small gal-auto', id: 'galAutoSt' }, gal.autoRun.all ? `Vybírám fotku… ${gal.autoRun.done}/${gal.autoRun.all}` : 'Připravuji rozpoznávání hráčů…'));
+  if (gal.autoRun) box.append(h('p', { class: 'small gal-auto', id: 'galAutoSt' }, gal.autoRun.all ? `Hodnotím fotky… ${gal.autoRun.done}/${gal.autoRun.all}` : 'Připravuji rozpoznávání hráčů…'));
   if (!gal.busy && !gal.err && !gal.items.length && (gal.notFound || gal.folderId))
     box.append(h('p', { class: 'small gal-err' }, 'Fotky k tomuto zápasu jsem zatím nenašel. Jakmile se nahrají na Disk, objeví se tu samy.'));
   if (gal.err) box.append(h('p', { class: 'small gal-err' }, gal.err));
   if (gal.busy && !gal.items.length) box.append(h('p', { class: 'small' }, 'Hledám fotky na Disku…'));
   if (!gal.items.length) return;
   const grid = h('div', { class: 'gal-grid' });
-  gal.items.slice(0, gal.shown).forEach(it => {
+  const sc = gal.scores || new Map();
+  const ordered = gal.items.slice().sort((a, b) => (sc.has(b.id) ? sc.get(b.id) : -1) - (sc.has(a.id) ? sc.get(a.id) : -1));
+  ordered.slice(0, gal.shown).forEach(it => {
     const img = h('img', { alt: '' }); img._it = it;
-    const b = h('button', { class: 'gal-it', title: it.name }, img);
+    const b = h('button', { class: 'gal-it' + (ordered[0] === it && sc.has(it.id) ? ' best' : ''), title: it.name }, img);
     b.addEventListener('click', () => galPreview(it, b));
     grid.append(b);
     gal.thumbs.has(it.id) ? gal.thumbs.get(it.id).then(u => { if (u) img.src = u; }) : (galIO ? galIO.observe(img) : galLoad(img));
