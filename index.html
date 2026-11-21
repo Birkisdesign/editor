@@ -877,10 +877,10 @@ html{background:#05070b}
 /* grafika nesmí přetékat mimo plochu (iOS Safari jinak kreslí fotku i pod panely) */
 #stage{contain:paint;clip-path:inset(0)}
 /* iOS Safari: rozmazané (glass) pozadí panelů si občas „pamatuje“ zavřený náhled fotky → na dotykových zařízeních plné pozadí */
-@media (max-width:880px),(hover:none){
-  aside .card,aside .match,aside .fx-card,#gallery,.gal-grid{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-  aside .card{background:#131821!important}
-}
+/* (platí všude, i na počítači – Safari/Chrome jinak ukazují zavřený náhled fotky za písmem) */
+aside .card,aside .match,aside .fx-card,#gallery,.gal-grid{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+aside .card{background:#131821!important}
+aside{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(10,13,19,.94)!important}
 .ge-svg{clip-path:inset(0)}
 .gal-auto{color:#9fc2ff}
 </style>
@@ -3562,7 +3562,11 @@ function galPreview(it, btn) {
   closeGalPrev(); gal.prev = it.id; btn.classList.add('prev');
   const phone = window.matchMedia('(max-width: 880px)').matches;
   const o = h('div', { id: 'galPrev', class: phone ? 'full' : '' });
-  if (!phone) { const r = $('#stage').getBoundingClientRect(); Object.assign(o.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); }
+  if (!phone) {
+    const r = $('#stage').getBoundingClientRect(), ar = document.querySelector('aside').getBoundingClientRect();
+    const right = ar.left > r.left + 100 ? Math.min(r.right, ar.left) : r.right;
+    Object.assign(o.style, { left: r.left + 'px', top: r.top + 'px', width: (right - r.left) + 'px', height: r.height + 'px' });
+  }
   const img = h('img', { alt: it.name, title: 'Použít tuto fotku' });
   const small = btn.querySelector('img'); if (small && small.src) img.src = small.src;
   const hint = h('p', {}, phone ? 'Klepni na fotku pro použití · klepnutím vedle zavřeš' : 'Klikni na fotku pro použití · kliknutím vedle nebo znovu na miniaturu zavřeš');
