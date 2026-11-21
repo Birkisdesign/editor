@@ -3457,8 +3457,8 @@ function scoreAnalysis(A, olc) {
   const near = q => Math.hypot((q.x + q.w / 2) - (main.x + main.w / 2), (q.y + q.h / 2) - (main.y + main.h / 2)) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5;
   const crowd = P.length > 7 ? .7 : 1;
   // kvalita fotky z hlediska hlavního hráče (0–~3.5)
-  const q = (main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0)) * crowd;
-  const good = sh >= .35 && main.prom >= .45; // dost ostrý a dost v popředí
+  const q = (main.prom * 3 + sh * 1.0 + (main.complete ? .3 : 0)) * crowd; // velikost v popředí má největší váhu
+  const good = sh >= .35 && main.prom >= .5; // dost ostrý a dost v popředí
   // jen zápasové fotky: hlavní postava musí být v dresu (ne oblek/bunda) a nesmí to být hlouček (oslava, nástup, focení)
   const inKit = main.cat !== 'dark';
   const huddle = P.filter(o => o.prom > .35).length >= 5;
