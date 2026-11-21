@@ -843,11 +843,11 @@ html{background:#05070b}
   #viewGroup,#syncWrap,#btnAnim,#btnLock,#docname{display:none!important}
   #boardGroup .hs small{display:none}
   #boardGroup .hs{padding:6px 12px!important}
-  #btnReset,#btnPng{font-size:0!important;width:42px;height:38px;padding:0!important;display:inline-grid;place-items:center;flex:0 0 auto}
-  #btnReset::before{content:"↶";font-size:22px;line-height:1}
-  #btnPng::before{content:"";width:18px;height:18px;background:currentColor;
-    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M6 10l6 6 6-6M4 21h16'/%3E%3C/svg%3E") center/contain no-repeat;
-    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M6 10l6 6 6-6M4 21h16'/%3E%3C/svg%3E") center/contain no-repeat}
+  #btnReset,#btnPng{font-size:0!important;width:40px!important;height:40px!important;min-width:40px;padding:0!important;border-radius:50%!important;
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 40px;line-height:0}
+  #btnReset::before,#btnPng::before{content:"";display:block;width:20px;height:20px;background:currentColor;margin:0}
+  #btnReset::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14 4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14 4 9l5-5'/%3E%3Cpath d='M4 9h10.5a5.5 5.5 0 0 1 0 11H11'/%3E%3C/svg%3E") center/contain no-repeat}
+  #btnPng::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 4v11'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M5 20h14'/%3E%3C/svg%3E") center/contain no-repeat}
   /* grafika přes celou šířku, stránka se normálně posouvá */
   .stage{position:relative!important;top:auto!important;height:calc((100vw - 16px) * 1.25 + 44px)!important;min-height:0!important}
   #navPrev,#navNext{display:none!important}
