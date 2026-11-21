@@ -3412,33 +3412,41 @@ function sharpness(ctx, W, H, b) {
   }
   const m = sum / n; return sum2 / n - m * m;
 }
-async function scorePhoto(det, url) {
+// 1. průchod: najdi hráče a barvu jejich dresu
+async function analyzePhoto(det, url) {
   const img = new Image(); img.src = url; await img.decode();
   const W = img.naturalWidth, H = img.naturalHeight;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d', { willReadFrequently: true }); ctx.drawImage(img, 0, 0);
   const preds = (await det.detect(img, 20, 0.4)).filter(p => p.class === 'person');
   const P = preds.map(p => {
     const [x, y, w, h] = p.bbox, c = torsoColors(ctx, W, H, p.bbox);
-    return { b: p.bbox, x, y, w, h, score: p.score, prom: Math.min(1, h / H * 1.25) * p.score,
-      complete: y > H * .01 && y + h < H * .99 && h / w > 1.2,
-      ol: c.red > .18 || (c.red > .07 && c.white > .25) };
-  }).filter(q => q.h > H * .18);
-  if (!P.length) return { s: 0 };
-  P.sort((a, b) => b.prom - a.prom);
-  const main = P[0];
-  main.sharp = sharpness(ctx, W, H, main.b);
-  const sh = Math.max(0, Math.min(1, (Math.log(main.sharp + 1) - Math.log(600)) / (Math.log(5000) - Math.log(600)))); // ostrost hlavního hráče 0–1
-  const near = q => { const cx = (q.x + q.w / 2) - (main.x + main.w / 2), cy = (q.y + q.h / 2) - (main.y + main.h / 2); return Math.hypot(cx, cy) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5; };
+    const cat = c.red > .2 ? 'red' : c.white > .35 ? 'white' : 'other';
+    return { b: p.bbox, x, y, w, h, prom: Math.min(1, h / H * 1.25) * p.score, complete: y > H * .01 && y + h < H * .99 && h / w > 1.2, cat };
+  }).filter(q => q.h > H * .18).sort((a, b) => b.prom - a.prom);
+  if (P[0]) P[0].sharp = sharpness(ctx, W, H, P[0].b);
+  return { P };
+}
+// 2. průchod: ohodnoť fotku (olc = barvy, které nosí Olomouc v tomto zápase)
+function scoreAnalysis(A, olc) {
+  const P = A.P; if (!P.length) return 0;
+  const isOl = q => olc.includes(q.cat), main = P[0];
+  const sh = Math.max(0, Math.min(1, (Math.log((main.sharp || 0) + 1) - Math.log(600)) / (Math.log(5000) - Math.log(600))));
+  const near = q => Math.hypot((q.x + q.w / 2) - (main.x + main.w / 2), (q.y + q.h / 2) - (main.y + main.h / 2)) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5;
   const crowd = P.length > 7 ? .7 : 1;
   let s;
-  if (main.ol) {
-    const duel = P.slice(1).some(q => !q.ol && near(q));
-    s = 1 + main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0) + (duel ? .4 : 0);
-  } else {
-    const ol = P.slice(1).find(q => q.ol && near(q)); // soupeř v popředí jen když s ním Olomouc bojuje
+  if (isOl(main)) s = 1 + main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0) + (P.slice(1).some(q => !isOl(q) && near(q)) ? .4 : 0);
+  else {
+    const ol = P.slice(1).find(q => isOl(q) && near(q)); // soupeř v popředí jen v souboji s hráčem Olomouce
     s = ol ? 1 + main.prom * 1.3 + sh * 1.6 + ol.prom * .8 + (main.complete ? .3 : 0) : main.prom * .5 + sh * .3;
   }
-  return { s: s * crowd, ol: main.ol, sharp: Math.round(main.sharp), prom: +main.prom.toFixed(2), n: P.length };
+  return s * crowd;
+}
+// Olomouc hraje v červené nebo bílé; když soupeř nosí jinou barvu, berou se obě, jinak doma červená / venku bílá
+function olomoucColors(analyses, home) {
+  let n = 0, other = 0;
+  analyses.forEach(A => A && A.P.slice(0, 3).forEach(q => { n++; if (q.cat === 'other') other++; }));
+  if (n && other / n > .2) return ['red', 'white'];
+  return home ? ['red'] : ['white'];
 }
 function galAutoMaybe(fk, i) {
   if (!gal.items.length || gal.autoRun) return;
@@ -3456,18 +3464,23 @@ async function autoPick(fk, manual) {
     const jp = gal.items.filter(it => /\.(jpe?g|heic|webp)$/i.test(it.name)), all = jp.length ? jp : gal.items, step = Math.max(1, all.length / 48), cand = [];
     for (let k = 0; k < all.length && cand.length < 48; k += step) cand.push(all[Math.floor(k)]);
     gal.autoRun.all = cand.length;
-    let best = null, bestS = -1;
     const urls = cand.map(() => null); let next = 0;
     const fetcher = async () => { while (next < cand.length && gal.fixture === fk) { const k = next++; urls[k] = thumbFor(cand[k]); await urls[k]; } };
     const pool = Array.from({ length: 6 }, fetcher);
+    const an = [];
     for (let k = 0; k < cand.length; k++) {
       if (gal.fixture !== fk) return;
       while (!urls[k]) await new Promise(r => setTimeout(r, 50));
       const u = await urls[k];
-      if (u) { try { const r = await scorePhoto(det, u); (window.__autoLog = window.__autoLog || []).push([cand[k].name, +r.s.toFixed(2), r]); if (r.s > bestS) { bestS = r.s; best = cand[k]; } } catch (e) {} }
+      if (u) { try { an[k] = await analyzePhoto(det, u); } catch (e) {} }
       gal.autoRun.done++; const el = document.getElementById('galAutoSt'); if (el) el.textContent = `Vybírám fotku… ${gal.autoRun.done}/${gal.autoRun.all}`;
     }
     await Promise.all(pool);
+    const F = fx(), fi = +String(fk).split(':')[1], home = F.list[fi] && F.list[fi][2] === 'FBS Olomouc';
+    const olc = olomoucColors(an, home);
+    let best = null, bestS = -1; window.__autoLog = [];
+    an.forEach((A, k) => { if (!A) return; const sc = scoreAnalysis(A, olc); window.__autoLog.push([cand[k].name, +sc.toFixed(2), A.P.map(q => q.cat + ':' + q.prom.toFixed(2)).join(' '), Math.round(A.P[0] ? A.P[0].sharp || 0 : 0)]); if (sc > bestS) { bestS = sc; best = cand[k]; } });
+    window.__autoOlc = olc;
     if (!best || gal.fixture !== fk) return;
     try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
     const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.name) || document.createElement('button');
