@@ -3747,7 +3747,7 @@ function renderMatch() {
   if (m.periods) {
     // třetiny: jen číselná klávesnice, dvojtečky a „|“ se doplňují samy (1 číslice za tým a třetinu)
     const p = h('input', { type: 'text', class: 'm-text', value: getText(m.periods), inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', enterkeyhint: 'done' });
-    const sepOf = () => { const c = getText(m.periods); return /\|/.test(c) ? (/ \| /.test(c) ? ' | ' : '|') : ' - '; };
+    const sepOf = () => periodsSep(getText(m.periods));
     const fmt = (d, full) => {
       const sep = sepOf(), out = [];
       for (let k = 0; k < 3; k++) {
@@ -3762,7 +3762,8 @@ function renderMatch() {
     const put = d => {
       d = d.replace(/\D/g, '').slice(0, 6);
       p.value = fmt(d, false);
-      setItemText(m.periods, fmt(d, true));
+      setItemText(m.periods, fmt(d, true)); syncOT(m);
+      if (document.activeElement === p) p.value = fmt(d, false);
       try { p.setSelectionRange(p.value.length, p.value.length); } catch (e) {}
     };
     p.addEventListener('beforeinput', e => {
@@ -3772,7 +3773,7 @@ function renderMatch() {
       put(all ? '' : p.value.replace(/\D/g, '').slice(0, -1));
     });
     p.addEventListener('input', () => put(p.value));
-    p.addEventListener('focus', () => { select(m.periods, false); setTimeout(() => { try { p.select(); } catch (e) {} }, 0); });
+    p.addEventListener('focus', () => { select(m.periods, false); const v0 = p.value; setTimeout(() => { if (p.value === v0) try { p.select(); } catch (e) {} }, 0); });
     p.addEventListener('blur', () => { p.value = getText(m.periods); });
     matchRefs.p = p;
     rows.push(h('label', { class: 'f full' }, String(m.periods.label).replace(/\s*kopie\b.*$/i, ''), p));
@@ -3783,7 +3784,7 @@ function renderMatch() {
       const b = h('button', { class: 'btn sm', 'data-v': v }, l);
       b.addEventListener('click', () => {
         if (v === 'none') setVisible(m.pn, false); else { if (norm(getText(m.pn)) !== v) setItemText(m.pn, v); setVisible(m.pn, true); }
-        mark(); scheduleSave();
+        mark(); syncOT(m); scheduleSave();
       });
       return b;
     }));
@@ -3798,7 +3799,24 @@ function olomoucSide(it, name) {
   const side = it === matchRefs.m.logoH ? 'home' : it === matchRefs.m.logoA ? 'away' : null;
   if (side) { state.persp = side; autoResult(); scheduleSave(); }
 }
+// prodloužení / nájezdy: 4. „třetina“ 1:0 z pohledu vítěze (při normálním čase se odebere)
+function periodsSep(t) { return /\|/.test(t) ? (/ \| /.test(t) ? ' | ' : '|') : ' - '; }
+function syncOT(m) {
+  if (!m || !m.periods) return;
+  const cur = getText(m.periods), sep = periodsSep(cur);
+  const parts = cur.split(/\s*[|-]\s*/).filter(x => /^\d+:\d+$/.test(x)).slice(0, 3);
+  while (parts.length < 3) parts.push('0:0');
+  if (m.pn && m.pn.el.style.display !== 'none') {
+    const h = parseInt(getText(m.home), 10) || 0, a = parseInt(getText(m.away), 10) || 0;
+    const homeWins = h !== a ? h > a : state.persp !== 'away'; // nerozhodně → Olomouc
+    parts.push(homeWins ? '1:0' : '0:1');
+  }
+  const t = parts.join(sep);
+  if (t !== cur) setItemText(m.periods, t);
+  if (matchRefs && matchRefs.p && document.activeElement !== matchRefs.p) matchRefs.p.value = t;
+}
 function autoResult() {
+  if (matchRefs) syncOT(matchRefs.m);
   if (!matchRefs || !matchRefs.m.res) return;
   const { m } = matchRefs;
   const txt = resultFor(parseInt(getText(m.home), 10) || 0, parseInt(getText(m.away), 10) || 0, state.persp);
