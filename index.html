@@ -880,6 +880,7 @@ html{background:#05070b}
 
 .ge-svg{clip-path:inset(0)}
 .gal-auto{color:#9fc2ff}
+.fix-note{margin:8px 2px 0;font-size:12px;line-height:1.4;color:#ff8a8a}
 .gal-it.best::after{content:'★ nejlepší';position:absolute;left:4px;top:4px;font:600 10px/1 system-ui,sans-serif;color:#1a1200;background:#ffd34d;padding:3px 5px;border-radius:5px}
 </style>
 </head>
@@ -3170,7 +3171,8 @@ function renderFixtures() {
   const box = $('#fixtures'); box.innerHTML = '';
   if (!state.svg || !FIXSET[state.section]) return;
   const F = fx();
-  const label = i => { const [r, d, hm, aw] = F.list[i]; return `${r}. kolo · ${d.replace(',', '')} · ${SHORT[hm] || hm} – ${SHORT[aw] || aw}`; };
+  const label = i => { const [r, d, hm, aw, sc, , , st] = F.list[i]; const live = sc && st && !/odehr/.test(st); return `${r}. kolo · ${d.replace(',', '')} · ${SHORT[hm] || hm} – ${SHORT[aw] || aw}` + (sc ? ` · ${live ? '● ' : ''}${sc}` : ''); };
+  cfSync(state.section, false);
   let cur = ''; try { cur = localStorage.getItem(F.key) || ''; } catch (e) {}
   if (!F.list[cur]) cur = '';
   const btnTxt = h('span', {}, cur !== '' ? label(+cur) : 'Vyber zápas…');
@@ -3192,7 +3194,9 @@ function renderFixtures() {
     const on = list.querySelector('.on') || [...list.children].find(x => !x.classList.contains('past')); if (on) on.scrollIntoView({ block: 'center' });
   });
   const sel = h('div', { class: 'fix-wrap' }, btn, list);
-  box.append(h('h2', {}, 'Zápasy', h('span', {}, F.title)), h('div', { class: 'card fix-card' }, sel));
+  const card = h('div', { class: 'card fix-card' }, sel);
+  if (cf.old) card.append(h('p', { class: 'fix-note' }, 'Výsledky z ceskyflorbal.cz se načtou po aktualizaci Apps Scriptu (nový kód + Nasadit → Spravovat nasazení → Nová verze).'));
+  box.append(h('h2', {}, 'Zápasy', h('span', {}, F.title)), card);
 }
 async function applyFixture(i) {
   const F = fx(); let [r, d, hm, aw, sc, per] = F.list[i];
@@ -3204,20 +3208,100 @@ async function applyFixture(i) {
   }
   state.persp = hm === 'FBS Olomouc' ? 'home' : 'away';
   roundSet[state.section] = String(r);
-  sc = '0:0'; per = '0:0 - 0:0 - 0:0';
-  {
-    const mm = sc.match(/^(\d+):(\d+)\s*([a-z]*)$/i);
-    if (mm && m.home && m.away) { setItemText(m.home, mm[1]); setItemText(m.away, mm[2]); }
-    if (m.periods && per) {
-      const cur = getText(m.periods);
-      const sep = /\|/.test(cur) ? (/ \| /.test(cur) ? ' | ' : '|') : ' - ';
-      setItemText(m.periods, per.split(/\s*-\s*/).join(sep));
-    }
-    if (m.pn) setVisible(m.pn, !!(mm && mm[3]));
-  }
+  if (!/^\d+:\d+/.test(sc || '')) { sc = '0:0'; per = ''; }
+  setWebScore(m, sc, per);
   renderMatch(); autoResult(); renderMatchValues(); changed();
-  toast(`Nastaven zápas: ${SHORT[hm] || hm} – ${SHORT[aw] || aw}`);
+  toast(`Nastaven zápas: ${SHORT[hm] || hm} – ${SHORT[aw] || aw}` + (sc !== '0:0' ? ` (${sc})` : ''));
+  cfLive(true);
 }
+// zapíše skóre, třetiny a prodloužení/nájezdy do grafiky
+function setWebScore(m, sc, per) {
+  const mm = String(sc).match(/^(\d+):(\d+)\s*([a-z]*)$/i); if (!mm) return false;
+  if (m.home && m.away) { setItemText(m.home, mm[1]); setItemText(m.away, mm[2]); }
+  if (m.periods) {
+    const parts = (per || '').split(/\s*-\s*/).filter(x => /^\d+:\d+$/.test(x)).slice(0, 3);
+    while (parts.length < 3) parts.push('0:0');
+    const cur = getText(m.periods);
+    const sep = /\|/.test(cur) ? (/ \| /.test(cur) ? ' | ' : '|') : ' - ';
+    setItemText(m.periods, parts.join(sep));
+  }
+  if (m.pn) {
+    const ot = /^(pn|sn)$/i.test(mm[3]) ? 'sn' : mm[3] ? 'pp' : '';
+    if (ot) { setItemText(m.pn, ot); setVisible(m.pn, true); } else setVisible(m.pn, false);
+  }
+  return true;
+}
+
+/* ---------- výsledky z ceskyflorbal.cz (přes Apps Script; během zápasu průběžně) ---------- */
+const CF_CODE = { zeny: '8XW1', muzi: '8XM2' };
+const cf = { at: {}, old: false, busy: false };
+function cfMerge(sec, items) {
+  const L = FIXSET[sec].list; let ch = false;
+  for (const x of items || []) {
+    const f = L.find(f => f[0] === x.r && (f[2] === x.h || f[3] === x.a)); if (!f) continue;
+    const old = JSON.stringify(f.slice(1, 9));
+    f[1] = x.d || f[1]; f[2] = x.h; f[3] = x.a;
+    if ((x.sc || '') !== (f[4] || '')) { f[4] = x.sc || ''; if (!x.sc) f[5] = ''; }
+    f[6] = x.id || f[6] || ''; f[7] = x.st || ''; f[8] = x.time || f[8] || '';
+    if (JSON.stringify(f.slice(1, 9)) !== old) ch = true;
+  }
+  return ch;
+}
+function cfSave(sec) { try { localStorage.setItem('ge-cf-' + sec, JSON.stringify(FIXSET[sec].list.map(f => f.slice(0, 9)))); } catch (e) {} }
+// uložené výsledky z minula (aby byly hned i bez připojení)
+for (const sec of Object.keys(CF_CODE)) {
+  try {
+    const L = JSON.parse(localStorage.getItem('ge-cf-' + sec) || 'null');
+    if (Array.isArray(L)) L.forEach(r => { const f = FIXSET[sec].list.find(f => f[0] === r[0]); if (f) r.forEach((v, k) => { if (k) f[k] = v; }); });
+  } catch (e) {}
+}
+async function cfSync(sec, force) {
+  if (!gal.url || galBlocked() || !CF_CODE[sec] || cf.old) return;
+  if (!force && Date.now() - (cf.at[sec] || 0) < 3 * 60e3) return;
+  cf.at[sec] = Date.now();
+  try {
+    const j = await gas({ a: 'cf', t: 'list', id: CF_CODE[sec] });
+    if (cfMerge(sec, j.items)) { cfSave(sec); if (sec === state.section) renderFixtures(); }
+  } catch (e) {
+    if (/akce/.test(e.message || '')) { cf.old = true; if (sec === state.section) renderFixtures(); }
+  }
+}
+// zvolený zápas: když se hraje (nebo už skončil a ještě nebyl načten), vezmi skóre a třetiny z webu
+async function cfLive(force) {
+  const sec = state.section, F = FIXSET[sec];
+  if (!F || !CF_CODE[sec] || !state.svg || !gal.url || galBlocked() || cf.old || cf.busy) return;
+  let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
+  const f = F.list[i]; if (!f) return;
+  const st = matchStart(sec, i), now = Date.now();
+  if (!st || now < st.getTime() - 10 * 60e3) return; // ještě se nehraje
+  const key = 'ge-cf-last-' + sec + ':' + i;
+  let last = ''; try { last = localStorage.getItem(key) || ''; } catch (e) {}
+  if (!force && /\|end$/.test(last)) return; // výsledek po konci už je v grafice
+  if (!f[6]) { await cfSync(sec, true); if (!f[6]) return; }
+  cf.busy = true;
+  try {
+    const j = await gas({ a: 'cf', t: 'match', id: f[6] });
+    if (!/^\d+:\d+/.test(j.sc || '')) return;
+    const sig = j.sc + '|' + j.per + '|' + (j.end ? 'end' : 'live');
+    f[4] = j.sc; f[5] = j.per; f[7] = j.end ? 'odehráno' : j.st; cfSave(sec);
+    if (sig === last) return; // nic nového – ruční úpravy nepřepisuj
+    if (!force && !last && now > st.getTime() + 6 * 3600e3) { try { localStorage.setItem(key, sig); } catch (e) {} return; } // starý zápas: grafiku nepřepisuj
+    try { localStorage.setItem(key, sig); } catch (e) {}
+    let cur = ''; try { cur = localStorage.getItem(F.key) || ''; } catch (e) {}
+    if (state.section !== sec || cur !== String(i)) return;
+    const m = matchItems();
+    if (!setWebScore(m, j.sc, j.per)) return;
+    const typing = document.activeElement && document.activeElement.closest && document.activeElement.closest('.match');
+    if (!typing) renderMatch();
+    autoResult(); renderMatchValues(); changed();
+    toast((j.end ? 'Konečný výsledek z ceskyflorbal.cz: ' : 'Živě z ceskyflorbal.cz: ') + j.sc + (j.per ? ' (' + j.per + ')' : ''));
+  } catch (e) {
+    if (/akce/.test(e.message || '')) { cf.old = true; renderFixtures(); }
+  } finally { cf.busy = false; }
+}
+setInterval(() => { if (!document.hidden) { cfLive(false); cfSync(state.section, false); } }, 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) cfLive(false); });
+window.__cf = { cfSync, cfLive, q: () => { const m = matchItems(); return [getText(m.home), getText(m.away), m.periods && getText(m.periods), m.pn && m.pn.el.style.display, m.pn && getText(m.pn)]; }, set: v => setItemText(matchItems().home, v) };
 
 /* ---------- fotky ze zápasu (Google Disk přes Apps Script, bez stahování do počítače) ---------- */
 const TEAM_KEY = { 'FBS Olomouc': 'olomouc', 'Tatran Střešovice': 'tatran', 'FbŠ Bohemians': 'bohemians', 'GC System Bulldogs Brno': 'bulldogs',
@@ -3265,7 +3349,7 @@ async function driveDecrypt(pass) {
 async function galConnectSaved() {
   const p = await askText('Zadej své heslo k webu – Disk se připojí sám:', '', { type: 'password', ok: 'Připojit' });
   if (!p) return;
-  if (await driveDecrypt(p)) { toast('Google Disk připojen.'); renderGallery(); galScan(true); }
+  if (await driveDecrypt(p)) { toast('Google Disk připojen.'); renderGallery(); galScan(true); cfSync(state.section, true); cfLive(false); }
   else toast('Špatné heslo.');
 }
 async function galShare() {
@@ -3355,8 +3439,8 @@ async function listImagesDeep(id, depth = 2) {
 function matchStart(sec, i) {
   const F = FIXSET[sec]; const f = F && F.list[i]; if (!f) return null;
   const d = fixDate(f[1]); if (!d) return null;
-  const hf = (HOME_FIX[sec] || []).find(x => x[0] === f[0]); const t = hf && /^(\d{1,2}):(\d{2})$/.exec(hf[4] || '');
-  if (t && hf[4] !== '00:00') d.setHours(+t[1], +t[2], 0, 0);
+  const hf = (HOME_FIX[sec] || []).find(x => x[0] === f[0]); const tm = f[8] || (hf && hf[4]) || ''; const t = /^(\d{1,2}):(\d{2})$/.exec(tm);
+  if (t && tm !== '00:00') d.setHours(+t[1], +t[2], 0, 0);
   else d.setHours(1, 0, 0, 0); // bez času: hledej od půlnoci dne zápasu
   return d;
 }
