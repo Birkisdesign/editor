@@ -2799,7 +2799,11 @@ try { if (localStorage.getItem('ge-fold') === '0') setTimeout(() => setFold(fals
 function renderList() {
   list.innerHTML = '';
   let items = state.svg ? orderedItems() : [];
-  if (state.svg) { const mi = matchItems(); if (mi.home && mi.away) { const skip = new Set(Object.values(mi).filter(Boolean)); items = items.filter(i => !skip.has(i)); } }
+  if (state.svg) { const mi = matchItems(); if (mi.home && mi.away) {
+    const logos = [mi.logoH, mi.logoA].filter(Boolean); // loga týmů zůstávají v Úpravách (nahoře)
+    const skip = new Set(Object.values(mi).filter(v => v && !logos.includes(v)));
+    items = [...logos, ...items.filter(i => !skip.has(i) && !logos.includes(i))];
+  } }
   $('#count').textContent = items.length || '';
   $('#noLayers').hidden = !!items.length;
   if (state.svg && !items.length) { $('#noLayers').hidden = false; $('#noLayers').textContent = 'Žádné upravitelné texty ani obrázky.'; }
@@ -3803,8 +3807,6 @@ function renderMatch() {
     mark(); matchRefs.ot = mark;
     rows.push(h('div', { class: 'f full' }, h('span', {}, 'Konec zápasu'), seg));
   }
-  if (m.logoH || m.logoA) rows.push(h('details', { class: 'm-logos' }, h('summary', {}, 'Loga týmů', h('small', {}, ' · podle zvoleného zápasu')),
-    h('div', { class: 'm-logos-row' }, logo(m.logoH, 'Domácí'), logo(m.logoA, 'Hosté'))));
   box.append(h('h2', {}, 'Zápas'), h('div', { class: 'match card' }, rows));
 }
 function olomoucSide(it, name) {
