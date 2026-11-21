@@ -3433,13 +3433,15 @@ function scoreAnalysis(A, olc) {
   const sh = Math.max(0, Math.min(1, (Math.log((main.sharp || 0) + 1) - Math.log(600)) / (Math.log(5000) - Math.log(600))));
   const near = q => Math.hypot((q.x + q.w / 2) - (main.x + main.w / 2), (q.y + q.h / 2) - (main.y + main.h / 2)) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5;
   const crowd = P.length > 7 ? .7 : 1;
-  let s;
-  if (isOl(main)) s = 1 + main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0) + (P.slice(1).some(q => !isOl(q) && near(q)) ? .4 : 0);
-  else {
-    const ol = P.slice(1).find(q => isOl(q) && near(q)); // soupeř v popředí jen v souboji s hráčem Olomouce
-    s = ol ? 1 + main.prom * 1.3 + sh * 1.6 + ol.prom * .8 + (main.complete ? .3 : 0) : main.prom * .5 + sh * .3;
-  }
-  return s * crowd;
+  // kvalita fotky z hlediska hlavního hráče (0–~3.5)
+  const q = (main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0)) * crowd;
+  const good = sh >= .35 && main.prom >= .45; // dost ostrý a dost v popředí
+  // 1. přednost: hlavní hráč je z Olomouce (a fotka je kvalitní)
+  if (isOl(main)) return (good ? 10 : 4) + q + (P.slice(1).some(o => !isOl(o) && near(o)) ? .3 : 0);
+  // 2. až potom: hlavní hráč je soupeř (lépe v souboji s hráčem Olomouce)
+  const duel = P.slice(1).find(o => isOl(o) && near(o));
+  return (duel ? 5 : 3) + q + (duel ? duel.prom * .5 : 0);
+
 }
 // Olomouc hraje v červené nebo bílé; když soupeř nosí jinou barvu, berou se obě, jinak doma červená / venku bílá
 function olomoucColors(analyses, home) {
@@ -3487,7 +3489,7 @@ async function autoPick(fk, manual) {
     try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
     const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.name) || document.createElement('button');
     await galUse(best, btn);
-    toast(bestS >= 1 ? 'Vybral jsem fotku s hráčem Olomouce.' : 'Hráče Olomouce jsem nepoznal, vybral jsem nejlepší fotku s hráči.');
+    toast(bestS >= 10 ? 'Vybral jsem fotku s hráčem Olomouce v popředí.' : bestS >= 5 ? 'Vybral jsem souboj, v popředí je soupeř.' : 'Dobrou fotku s Olomoucí v popředí jsem nenašel, vybral jsem nejlepší s hráčem soupeře.')
   } catch (e) {
     if (manual) toast('Automatický výběr fotky se nepodařilo spustit.');
   } finally { gal.autoRun = null; renderGallery(); }
