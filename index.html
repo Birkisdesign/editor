@@ -2442,12 +2442,54 @@ function itemsAt(cx, cy) {
   return out;
 }
 let drag = null;
+/* ---------- dotyková gesta (telefon/tablet): 2 prsty = zoom fotky, 2× ťuk = na střed, 2× ťuk dvěma prsty = vyplnit ---------- */
+const touches = new Map(); let pinch = null, lastTap1 = null, lastTap2 = 0;
+function tDist() { const p = [...touches.values()]; return p.length < 2 ? 0 : Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); }
+function touchStart(e) {
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touches.size === 2) {
+    drag = null;
+    const ph = photoItem();
+    pinch = { it: ph, d0: tDist(), z0: ph ? ph.zoom : 1, t0: performance.now(), moved: false };
+    if (ph && state.selected !== ph) select(ph, false);
+    return true;
+  }
+  return touches.size > 2;
+}
+window.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!pinch || touches.size < 2 || !pinch.it || !pinch.d0) return;
+  const d = tDist(); if (Math.abs(d - pinch.d0) > 8) pinch.moved = true;
+  if (!pinch.moved) return;
+  const it = pinch.it; it.zoom = clamp(pinch.z0 * d / pinch.d0, 0.2, 5);
+  applyImage(it); syncImageCard(it); updateOverlay();
+}, true);
+function touchEnd(e) {
+  if (e.pointerType !== 'touch') return;
+  touches.delete(e.pointerId);
+  if (pinch && touches.size < 2) {
+    const p = pinch; pinch = null; drag = null;
+    if (p.moved) changed();
+    else if (performance.now() - p.t0 < 350) {
+      const now = performance.now();
+      if (now - lastTap2 < 450) { lastTap2 = 0; const ph = photoItem(); if (ph) { photoFitHeight(ph); toast('Fotka na výšku plátna.'); } }
+      else lastTap2 = now;
+    }
+    lastTap1 = null;
+  }
+}
+window.addEventListener('pointerup', touchEnd, true);
+window.addEventListener('pointercancel', touchEnd, true);
 function onDown(e) {
+  if (e.pointerType === 'touch' && touchStart(e)) { e.preventDefault(); return; }
+  if (pinch) return;
   if (e.button !== 0) return;
   const hits = itemsAt(e.clientX, e.clientY);
   const target = state.selected && hits.includes(state.selected) ? state.selected : (hits[0] || null);
   drag = { target, hits, sx: e.clientX, sy: e.clientY, moved: false, layer: e.shiftKey || e.altKey };
   if (target) Object.assign(drag, { dx0: target.dx, dy0: target.dy, ox0: target.ox, oy0: target.oy });
+  if (e.pointerType === 'touch' && lastTap1 && performance.now() - lastTap1.time < 380 && Math.hypot(e.clientX - lastTap1.x, e.clientY - lastTap1.y) < 40) drag.dbl = true;
   try { state.svg.setPointerCapture(e.pointerId); } catch (_) {}
   e.preventDefault();
 }
@@ -2455,7 +2497,7 @@ window.addEventListener('pointermove', e => {
   if (!drag || !drag.target) return;
   const ddx = e.clientX - drag.sx, ddy = e.clientY - drag.sy;
   if (!drag.moved && Math.hypot(ddx, ddy) < 4) return;
-  if (!drag.moved) { drag.moved = true; if (state.selected !== drag.target) select(drag.target); }
+  if (!drag.moved) { drag.moved = true; if (state.selected !== drag.target) select(drag.target, e.pointerType !== 'touch'); }
   const it = drag.target;
   if (it.type === 'image' && !drag.layer && it.o.w) {
     const m = it.el.getScreenCTM(); if (!m) return; const inv = m.inverse();
@@ -2469,13 +2511,23 @@ window.addEventListener('pointermove', e => {
   }
   updateOverlay();
 });
-window.addEventListener('pointerup', () => {
+window.addEventListener('pointerup', e => {
   if (!drag) return;
+  const touch = e.pointerType === 'touch';
   if (!drag.moved) {
-    const hits = drag.hits;
+    if (touch) {
+      const now = performance.now();
+      if (drag.dbl) {
+        lastTap1 = null; drag = null;
+        const ph = photoItem(); if (ph) { photoCenter(ph); toast('Fotka svisle na střed.'); }
+        return;
+      }
+      lastTap1 = { time: now, x: e.clientX, y: e.clientY };
+    }
+    const hits = drag.hits, sc = !touch;
     if (!hits.length) select(null);
-    else if (state.selected && hits.includes(state.selected) && hits.length > 1) select(hits[(hits.indexOf(state.selected) + 1) % hits.length]);
-    else select(hits[0]);
+    else if (state.selected && hits.includes(state.selected) && hits.length > 1) select(hits[(hits.indexOf(state.selected) + 1) % hits.length], sc);
+    else select(hits[0], sc);
   } else changed();
   drag = null;
 });
