@@ -143,9 +143,18 @@ textarea:focus,input[type=number]:focus,select:focus{border-color:var(--accent)}
 .m-logo:hover{border-color:var(--line);color:var(--text)}
 .m-logo img{width:46px;height:46px;object-fit:contain}
 .m-logo.empty{cursor:default}
-.score{display:flex;flex-direction:column;align-items:center;gap:4px}
-.score .btn{width:44px;padding:3px 0;font-size:18px;line-height:1}
-.score-in{width:52px;text-align:center;font-size:26px;font-weight:800;background:#11141a;border:1px solid var(--line);border-radius:8px;padding:4px 0;outline:none;-moz-appearance:textfield}
+.score{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0}
+.score-name{font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score-in{width:100%;max-width:120px;text-align:center;font-size:40px;line-height:1;font-weight:800;background:#11141a;border:1px solid var(--line);border-radius:14px;padding:14px 0;outline:none;color:var(--text);cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .08s,border-color .15s}
+.score-in:active{transform:scale(.96);border-color:var(--accent)}
+.score-minus{background:none;border:none;color:var(--muted);font-size:13px;padding:4px 10px;cursor:pointer;border-radius:8px}
+.score-minus:hover{color:var(--text);background:var(--panel2)}
+.m-logos summary{cursor:pointer;font-size:13px;color:var(--muted);list-style:none;padding:2px 0}
+.m-logos summary::-webkit-details-marker{display:none}
+.m-logos summary::before{content:'▸ ';}
+.m-logos[open] summary::before{content:'▾ ';}
+.m-logos small{font-size:11px;opacity:.7}
+.m-logos-row{display:flex;justify-content:space-around;margin-top:8px}
 .score-in::-webkit-inner-spin-button{-webkit-appearance:none}
 .colon{font-size:24px;color:var(--muted)}
 .m-text{width:100%;background:#11141a;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:16px;outline:none}
@@ -3729,21 +3738,23 @@ function renderMatch() {
     const h = val(m.home), a = val(m.away);
     state.persp = cur && resultFor(h, a, 'away') !== resultFor(h, a, 'home') && norm(resultFor(h, a, 'away')) === cur ? 'away' : 'home';
   }
-  const scoreBox = (it) => {
-    const inp = h('input', { type: 'number', min: 0, class: 'score-in', value: val(it), inputmode: 'numeric' });
-    const set = v => { setItemText(it, String(Math.max(0, v))); autoResult(); };
-    inp.addEventListener('input', () => { if (inp.value !== '') set(parseInt(inp.value, 10) || 0); });
-    inp.addEventListener('focus', () => select(it, false));
-    return { inp, el: h('div', { class: 'score' },
-      h('button', { class: 'btn', title: 'Ubrat', onclick: () => { set(val(it) - 1); inp.value = val(it); } }, '−'), inp,
-      h('button', { class: 'btn', title: 'Přidat', onclick: () => { set(val(it) + 1); inp.value = val(it); } }, '+')) };
+  // skóre: klepnutí na číslo = gól (+1), malé „−“ pod ním ubere
+  const F = FIXSET[state.section]; let fi = ''; try { fi = F ? localStorage.getItem(F.key) || '' : ''; } catch (e) {}
+  const fxr = F && F.list[fi];
+  const scoreBox = (it, name) => {
+    const inp = h('button', { type: 'button', class: 'score-in', title: 'Klepni = gól (+1)' }, String(val(it)));
+    Object.defineProperty(inp, 'value', { get: () => inp.textContent, set: v => { inp.textContent = String(v); } });
+    const set = v => { setItemText(it, String(Math.max(0, v))); inp.value = val(it); autoResult(); };
+    inp.addEventListener('click', () => { select(it, false); set(val(it) + 1); });
+    return { inp, el: h('div', { class: 'score' }, h('span', { class: 'score-name' }, name), inp,
+      h('button', { class: 'score-minus', type: 'button', title: 'Ubrat gól', onclick: () => set(val(it) - 1) }, '− 1')) };
   };
   const logo = (it, label) => it
     ? h('button', { class: 'm-logo', title: label + ' – vybrat logo', onclick: () => { select(it); openLibrary(it); } }, h('img', { src: getHref(it.el), alt: label }), h('span', {}, label))
     : h('div', { class: 'm-logo empty' }, h('span', {}, label));
-  const H = scoreBox(m.home), A = scoreBox(m.away);
+  const H = scoreBox(m.home, fxr ? SHORT[fxr[2]] || fxr[2] : 'Domácí'), A = scoreBox(m.away, fxr ? SHORT[fxr[3]] || fxr[3] : 'Hosté');
   matchRefs = { m, H, A };
-  const rows = [h('div', { class: 'm-row' }, logo(m.logoH, 'Domácí'), H.el, h('b', { class: 'colon' }, ':'), A.el, logo(m.logoA, 'Hosté'))];
+  const rows = [h('div', { class: 'm-row' }, H.el, h('b', { class: 'colon' }, ':'), A.el)];
   if (m.periods) {
     // třetiny: jen číselná klávesnice, dvojtečky a „|“ se doplňují samy (1 číslice za tým a třetinu)
     const p = h('input', { type: 'text', class: 'm-text', value: getText(m.periods), inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', enterkeyhint: 'done' });
@@ -3792,6 +3803,8 @@ function renderMatch() {
     mark(); matchRefs.ot = mark;
     rows.push(h('div', { class: 'f full' }, h('span', {}, 'Konec zápasu'), seg));
   }
+  if (m.logoH || m.logoA) rows.push(h('details', { class: 'm-logos' }, h('summary', {}, 'Loga týmů', h('small', {}, ' · podle zvoleného zápasu')),
+    h('div', { class: 'm-logos-row' }, logo(m.logoH, 'Domácí'), logo(m.logoA, 'Hosté'))));
   box.append(h('h2', {}, 'Zápas'), h('div', { class: 'match card' }, rows));
 }
 function olomoucSide(it, name) {
@@ -3825,8 +3838,8 @@ function autoResult() {
 function renderMatchValues() {
   if (!matchRefs) return;
   const { m, H, A } = matchRefs;
-  if (document.activeElement !== H.inp) H.inp.value = parseInt(getText(m.home), 10) || 0;
-  if (document.activeElement !== A.inp) A.inp.value = parseInt(getText(m.away), 10) || 0;
+  H.inp.value = parseInt(getText(m.home), 10) || 0;
+  A.inp.value = parseInt(getText(m.away), 10) || 0;
   if (matchRefs.p && document.activeElement !== matchRefs.p) matchRefs.p.value = getText(m.periods);
   if (matchRefs.ot) matchRefs.ot();
   [[m.logoH], [m.logoA]].forEach(([it]) => { if (it) { const img = $('#match').querySelectorAll('.m-logo img')[it === m.logoH ? 0 : 1]; if (img) img.src = getHref(it.el); } });
