@@ -2159,6 +2159,22 @@ function restorePhoto(it) {
   queueSync(it, 'orig', true);
   changed(); toast('Vrácena původní fotka.');
 }
+// posune fotku tak, aby hlavní dění bylo uprostřed; u postu nechá nad hráči mírný okraj; plátno zůstane celé zakryté
+function actionPlaceEl(el, root, a) {
+  const og = el.getAttribute('data-ge-orig'); const pp = og ? og.split(' ').map(Number) : [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')];
+  const o = { x: pp[0], y: pp[1], w: pp[2], h: pp[3] }; if (!o.w || !o.h) return;
+  const [vx, vy, vw, vh] = vbOf(root), post = vh < vw * 1.4;
+  const clampX = x => Math.min(vx, Math.max(vx + vw - o.w, x)), clampY = y => Math.min(vy, Math.max(vy + vh - o.h, y));
+  const nx = clampX(vx + vw / 2 - o.w * a.cx);
+  const ny = post ? clampY(vy + vh * .06 - o.h * a.top) : clampY(vy + vh / 2 - o.h * a.cy);
+  const ox = (nx - o.x) / o.w * 100, oy = (ny - o.y) / o.h * 100;
+  el.setAttribute('x', r2(nx)); el.setAttribute('y', r2(ny)); el.setAttribute('width', r2(o.w)); el.setAttribute('height', r2(o.h));
+  const custom = !!(ox || oy);
+  if (custom && !el.hasAttribute('clip-path')) ensureClipEl(el, root, o);
+  setData(el, 'orig', `${o.x} ${o.y} ${o.w} ${o.h}`, custom);
+  setData(el, 'zoom', 1, custom); setData(el, 'ox', r2(ox), custom); setData(el, 'oy', r2(oy), custom);
+  updateTwinEl(el, root);
+}
 function vbOf(root) {
   const vb = (root.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
   return vb.length === 4 ? vb : [0, 0, +root.getAttribute('width') || 1080, +root.getAttribute('height') || 1080];
@@ -2283,6 +2299,7 @@ function flushSync() {
       else if (op.type === 'vis') { el.style.display = op.val ? 'none' : ''; touched = true; }
       else if (op.type === 'orig' && el.localName === 'image') { if (restorePhotoEl(el, root, origHrefFor(el, b.original))) touched = true; }
       else if (op.type === 'fith' && el.localName === 'image') { fitHeightEl(el, root, op.val); touched = true; }
+      else if (op.type === 'act' && el.localName === 'image') { actionPlaceEl(el, root, op.val); touched = true; }
       else if (op.type === 'center' && el.localName === 'image') { centerYEl(el, root); touched = true; }
       else if (op.type === 'pand' && el.localName === 'image') {
         const og = el.getAttribute('data-ge-orig'); const pp = og ? og.split(' ').map(Number) : [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')];
@@ -3424,7 +3441,15 @@ async function analyzePhoto(det, url) {
     return { b: p.bbox, x, y, w, h, prom: Math.min(1, h / H * 1.25) * p.score, complete: y > H * .01 && y + h < H * .99 && h / w > 1.2, cat, c };
   }).filter(q => q.h > H * .18).sort((a, b) => b.prom - a.prom);
   if (P[0]) P[0].sharp = sharpness(ctx, W, H, P[0].b);
-  return { P };
+  // hlavní dění: hlavní hráč + nejbližší soupeř/spoluhráč v souboji (v poměru k fotce)
+  let act = null;
+  if (P[0]) {
+    const m = P[0], near = P.slice(1).filter(q => Math.hypot((q.x + q.w / 2) - (m.x + m.w / 2), (q.y + q.h / 2) - (m.y + m.h / 2)) < Math.max(m.w, m.h) * .75 && q.h > m.h * .5);
+    const bs = [m, ...near.slice(0, 2)];
+    const x0 = Math.min(...bs.map(q => q.x)), x1 = Math.max(...bs.map(q => q.x + q.w)), y0 = Math.min(...bs.map(q => q.y)), y1 = Math.max(...bs.map(q => q.y + q.h));
+    act = { cx: (x0 + x1) / 2 / W, cy: (y0 + y1) / 2 / H, top: y0 / H };
+  }
+  return { P, act };
 }
 // 2. průchod: ohodnoť fotku (olc = barvy, které nosí Olomouc v tomto zápase)
 function scoreAnalysis(A, olc) {
@@ -3436,6 +3461,10 @@ function scoreAnalysis(A, olc) {
   // kvalita fotky z hlediska hlavního hráče (0–~3.5)
   const q = (main.prom * 1.5 + sh * 1.6 + (main.complete ? .4 : 0)) * crowd;
   const good = sh >= .35 && main.prom >= .45; // dost ostrý a dost v popředí
+  // jen zápasové fotky: hlavní postava musí být v dresu (ne oblek/bunda) a nesmí to být hlouček (oslava, nástup, focení)
+  const inKit = main.cat !== 'dark';
+  const huddle = P.filter(o => o.prom > .35).length >= 5;
+  if (!inKit || huddle) return .5 + q * .2;
   // 1. přednost: hlavní hráč je z Olomouce (a fotka je kvalitní)
   if (isOl(main)) return (good ? 10 : 4) + q + (P.slice(1).some(o => !isOl(o) && near(o)) ? .3 : 0);
   // 2. až potom: hlavní hráč je soupeř (lépe v souboji s hráčem Olomouce)
@@ -3459,6 +3488,14 @@ function galAutoMaybe(fk, i) {
   const st = matchStart(state.section, i), past = st && Date.now() > st.getTime() + 3 * 3600e3;
   if (gal.items.length < 8 && !past) return; // během zápasu počkej na víc fotek
   autoPick(fk, false);
+}
+function placeAction(act) {
+  const ph = photoItem(); if (!ph) return;
+  actionPlaceEl(ph.el, state.svg, act);
+  ph.o = origOf(ph.el); ph.zoom = +ph.el.getAttribute('data-ge-zoom') || 1; ph.ox = +ph.el.getAttribute('data-ge-ox') || 0; ph.oy = +ph.el.getAttribute('data-ge-oy') || 0;
+  ph._pz = { zoom: ph.zoom, ox: ph.ox, oy: ph.oy, o: ph.o };
+  if (ph.ctrl) syncImageCard(ph);
+  queueSync(ph, 'act', act); changed(); updateOverlay();
 }
 async function autoPick(fk, manual) {
   if (gal.autoRun) return; gal.autoRun = { done: 0, all: 0 }; renderGallery();
@@ -3490,6 +3527,7 @@ async function autoPick(fk, manual) {
     try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
     const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.name) || document.createElement('button');
     await galUse(best, btn);
+    const bestA = an[cand.indexOf(best)]; if (bestA && bestA.act) placeAction(bestA.act);
     toast(bestS >= 10 ? 'Vybral jsem fotku s hráčem Olomouce v popředí.' : bestS >= 5 ? 'Vybral jsem souboj, v popředí je soupeř.' : 'Dobrou fotku s Olomoucí v popředí jsem nenašel, vybral jsem nejlepší s hráčem soupeře.')
   } catch (e) {
     if (manual) toast('Automatický výběr fotky se nepodařilo spustit.');
