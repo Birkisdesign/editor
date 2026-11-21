@@ -3427,14 +3427,22 @@ async function autoPick(fk, manual) {
   if (gal.autoRun) return; gal.autoRun = { done: 0, all: 0 }; renderGallery();
   try {
     const det = await loadDetector();
-    const cand = gal.items.slice(0, 80); gal.autoRun.all = cand.length;
+    // nejvýš 48 fotek rovnoměrně z celé složky, miniatury se stahují po 6 najednou
+    const all = gal.items, step = Math.max(1, all.length / 48), cand = [];
+    for (let k = 0; k < all.length && cand.length < 48; k += step) cand.push(all[Math.floor(k)]);
+    gal.autoRun.all = cand.length;
     let best = null, bestS = -1;
-    for (const it of cand) {
+    const urls = cand.map(() => null); let next = 0;
+    const fetcher = async () => { while (next < cand.length && gal.fixture === fk) { const k = next++; urls[k] = thumbFor(cand[k]); await urls[k]; } };
+    const pool = Array.from({ length: 6 }, fetcher);
+    for (let k = 0; k < cand.length; k++) {
       if (gal.fixture !== fk) return;
-      const u = await thumbFor(it);
-      if (u) { try { const sc = await scorePhoto(det, u); if (sc > bestS) { bestS = sc; best = it; } } catch (e) {} }
+      while (!urls[k]) await new Promise(r => setTimeout(r, 50));
+      const u = await urls[k];
+      if (u) { try { const sc = await scorePhoto(det, u); if (sc > bestS) { bestS = sc; best = cand[k]; } } catch (e) {} }
       gal.autoRun.done++; const el = document.getElementById('galAutoSt'); if (el) el.textContent = `Vybírám fotku… ${gal.autoRun.done}/${gal.autoRun.all}`;
     }
+    await Promise.all(pool);
     if (!best || gal.fixture !== fk) return;
     try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
     const btn = [...document.querySelectorAll('.gal-it')].find(b => b.title === best.name) || document.createElement('button');
