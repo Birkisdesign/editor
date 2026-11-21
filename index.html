@@ -3447,7 +3447,7 @@ async function analyzePhoto(det, url) {
     const x0 = Math.min(...bs.map(q => q.x)), x1 = Math.max(...bs.map(q => q.x + q.w)), y0 = Math.min(...bs.map(q => q.y)), y1 = Math.max(...bs.map(q => q.y + q.h));
     act = { cx: (x0 + x1) / 2 / W, cy: (y0 + y1) / 2 / H, top: y0 / H };
   }
-  return { P, act };
+  return { P, act, r: +(W / H).toFixed(3) };
 }
 // 2. průchod: ohodnoť fotku (olc = barvy, které nosí Olomouc v tomto zápase)
 function scoreAnalysis(A, olc, darkKit) {
@@ -3463,6 +3463,10 @@ function scoreAnalysis(A, olc, darkKit) {
   const inKit = main.cat !== 'dark' || darkKit; // tmavé oblečení je dres jen když soupeř hraje v tmavém
   const huddle = P.filter(o => o.prom > .35).length >= 5;
   if (!inKit || huddle) return -1; // není zápasová fotka → vynechat
+  // zblízka useknutá postava bez hráče v souboji (trenér, fanoušek, střídačka) → vynechat
+  const duelAny = P.slice(1).some(o => near(o));
+  if (!main.complete && !duelAny && main.prom > .6) return -1;
+  if (A.odd) return -1; // jiný formát než fotky z foťáku (grafika, screenshot)
   // 1. přednost: hlavní hráč je z Olomouce (a fotka je kvalitní)
   if (isOl(main)) return (good ? 10 : 4) + q + (P.slice(1).some(o => !isOl(o) && near(o)) ? .3 : 0);
   // 2. až potom: hlavní hráč je soupeř (lépe v souboji s hráčem Olomouce)
@@ -3483,9 +3487,9 @@ function olomoucColors(analyses, home) {
 const galAn = { fk: null, map: {} };
 function anLoad(fk) {
   if (galAn.fk === fk) return; galAn.fk = fk; galAn.map = {};
-  try { galAn.map = JSON.parse(localStorage.getItem('ge-an-' + fk) || '{}'); } catch (e) {}
+  try { galAn.map = JSON.parse(localStorage.getItem('ge-an2-' + fk) || '{}'); } catch (e) {}
 }
-function anSave(fk) { try { localStorage.setItem('ge-an-' + fk, JSON.stringify(galAn.map)); } catch (e) {} }
+function anSave(fk) { try { localStorage.setItem('ge-an2-' + fk, JSON.stringify(galAn.map)); } catch (e) {} }
 const isPhotoName = n => /\.(jpe?g|heic|webp|png)$/i.test(n) && !/preview|4x5|plakat|grafika/i.test(n);
 function galRank(fk) {
   // seřadí hodnocené fotky od nejlepší; vrátí [{it, s, A}]
@@ -3498,6 +3502,10 @@ function galRank(fk) {
     dn++; if (A.P.some(o => olc.includes(o.cat) && Math.hypot((o.x + o.w / 2) - (q.x + q.w / 2), (o.y + o.h / 2) - (q.y + q.h / 2)) < Math.max(q.w, q.h) * .8)) dk++;
   }));
   const darkKit = dn >= 3 && dk / dn >= .3;
+  // převládající poměr stran fotek z foťáku; jiné formáty jsou grafiky/screenshoty
+  const rc = {}; list.forEach(({ A }) => { if (A.r) { const k = (A.r > 1 ? A.r : 1 / A.r).toFixed(2); rc[k] = (rc[k] || 0) + 1; } });
+  const domR = +(Object.entries(rc).sort((a, b) => b[1] - a[1])[0] || ['0'])[0];
+  list.forEach(({ A }) => { const r = A.r ? (A.r > 1 ? A.r : 1 / A.r) : 0; A.odd = !!(domR && r && Math.abs(r - domR) / domR > .04); });
   list.forEach(x => x.s = scoreAnalysis(x.A, olc, darkKit));
   gal.excluded = new Set([...list.filter(x => x.s < 0).map(x => x.it.id), ...gal.items.filter(it => !isPhotoName(it.name)).map(it => it.id)]);
   const ok = list.filter(x => x.s >= 0).sort((a, b) => b.s - a.s);
