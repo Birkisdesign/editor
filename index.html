@@ -2417,10 +2417,10 @@ function logoFrameEl(el, root, r) {
   let b = el.getAttribute('data-ge-lbox');
   if (!b) { b = [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')].join(' '); el.setAttribute('data-ge-lbox', b); }
   const [x, y, w, hh] = b.split(' ').map(Number); if (!w || !hh || !r) return null;
-  // stejná „plocha“ jako logo Olomouce (poměr stran štítu ≈ 0,86); úzká smí být až o 20 % vyšší, širší až o 12 %
+  // stejná „plocha“ jako logo Olomouce (poměr stran štítu ≈ 0,86); úzká smí být nejvýš o 6 % vyšší, širší až o 12 %
   const br = w / hh, area = q => q < br ? q / br : br / q, REF = 0.86;
   let s = Math.sqrt(area(REF) / area(r));
-  s = r < br ? Math.min(1.2, Math.max(.9, s)) : Math.min(1.12, Math.max(.9, s));
+  s = r < br ? Math.min(1.06, Math.max(.9, s)) : Math.min(1.12, Math.max(.9, s));
   const f = { x: x + w / 2 - w * s / 2, y: y + hh / 2 - hh * s / 2, w: w * s, h: hh * s };
   ['zoom', 'ox', 'oy', 'orig'].forEach(k => el.removeAttribute('data-ge-' + k));
   setFrameEl(el, root, f);
