@@ -3443,10 +3443,11 @@ function scoreAnalysis(A, olc) {
 }
 // Olomouc hraje v červené nebo bílé; když soupeř nosí jinou barvu, berou se obě, jinak doma červená / venku bílá
 function olomoucColors(analyses, home) {
-  let n = 0, other = 0;
-  analyses.forEach(A => A && A.P.slice(0, 3).forEach(q => { n++; if (q.cat === 'other' || q.cat === 'dark') other++; }));
-  if (n && other / n > .2) return ['red', 'white'];
-  return home ? ['red'] : ['white'];
+  // výrazní hráči napříč fotkami: když jsou v zápase zastoupené červená i bílá, hraje soupeř v jedné z nich
+  let red = 0, white = 0, n = 0;
+  analyses.forEach(A => A && A.P.filter(q => q.prom > .45).slice(0, 3).forEach(q => { n++; if (q.cat === 'red') red++; else if (q.cat === 'white') white++; }));
+  if (n && red / n > .2 && white / n > .2) return home ? ['red'] : ['white'];
+  return ['red', 'white'];
 }
 function galAutoMaybe(fk, i) {
   if (!gal.items.length || gal.autoRun) return;
