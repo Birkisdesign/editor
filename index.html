@@ -2325,6 +2325,7 @@ function flushSync() {
         setData(el, 'zoom', r2(zoom), custom); setData(el, 'ox', r2(ox), custom); setData(el, 'oy', r2(oy), custom);
         updateTwinEl(el, root); touched = true;
       }
+      else if (op.type === 'lfit' && el.localName === 'image') { logoFrameEl(el, root, op.val); touched = true; }
       else if (op.type === 'meet' && el.localName === 'image') { fillEl(el, root, 'meet'); touched = true; }
       else if ((op.type === 'fill' || op.type === 'reset') && el.localName === 'image') { (op.type === 'fill' ? fillEl : resetEl)(el, root); touched = true; }
       else if (op.type === 'img' && el.localName === 'image') {
@@ -2391,8 +2392,52 @@ async function replaceImage(it, file) {
   let data; try { data = await prepareImage(file); } catch (e) { toast('Tenhle obrázek prohlížeč neumí otevřít.'); return; }
   applyImageData(it, data);
 }
+/* ---------- loga: ořez průhledných okrajů + vyrovnání velikosti (úzká vysoká loga smí být mírně vyšší) ---------- */
+const isLogoEl = el => (el.getAttribute('data-ge-fit') || el.getAttribute('preserveAspectRatio') || '').includes('meet');
+async function trimLogo(data) {
+  const img = new Image(); img.decoding = 'async';
+  await new Promise((ok, ko) => { img.onload = ok; img.onerror = ko; img.src = data; });
+  const k = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
+  const W = Math.max(1, Math.round(img.naturalWidth * k)), H = Math.max(1, Math.round(img.naturalHeight * k));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, W, H);
+  const px = g.getImageData(0, 0, W, H).data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (px[(y * W + x) * 4 + 3] > 16) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) return { data, r: W / H };
+  const tw = x1 - x0 + 1, th = y1 - y0 + 1;
+  if (tw > W * .97 && th > H * .97) return { data, r: W / H }; // bez průhledných okrajů → beze změny
+  const o = document.createElement('canvas'); o.width = tw; o.height = th;
+  o.getContext('2d').drawImage(c, x0, y0, tw, th, 0, 0, tw, th);
+  let out = o.toDataURL('image/webp', .95); if (!/^data:image\/webp/.test(out)) out = o.toDataURL('image/png');
+  return { data: out, r: tw / th };
+}
+// rámeček loga podle poměru stran
+function logoFrameEl(el, root, r) {
+  let b = el.getAttribute('data-ge-lbox');
+  if (!b) { b = [num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height')].join(' '); el.setAttribute('data-ge-lbox', b); }
+  const [x, y, w, hh] = b.split(' ').map(Number); if (!w || !hh || !r) return null;
+  // stejná „plocha“ jako logo Olomouce (poměr stran štítu ≈ 0,86); úzká smí být až o 20 % vyšší, širší až o 12 %
+  const br = w / hh, area = q => q < br ? q / br : br / q, REF = 0.86;
+  let s = Math.sqrt(area(REF) / area(r));
+  s = r < br ? Math.min(1.2, Math.max(.9, s)) : Math.min(1.12, Math.max(.9, s));
+  const f = { x: x + w / 2 - w * s / 2, y: y + hh / 2 - hh * s / 2, w: w * s, h: hh * s };
+  ['zoom', 'ox', 'oy', 'orig'].forEach(k => el.removeAttribute('data-ge-' + k));
+  setFrameEl(el, root, f);
+  return f;
+}
+async function normalizeLogo(it, data) {
+  if (it.def || !isLogoEl(it.el) || !/^data:image\/(png|webp|gif|svg)/.test(data)) return;
+  let t; try { t = await trimLogo(data); } catch (e) { return; }
+  if (getHref(it.el) !== data) return; // mezitím jiné logo
+  if (t.data !== data) { setHref(it.el, t.data); if (it.thumb) it.thumb.src = t.data; queueSync(it, 'img', t.data); }
+  const f = logoFrameEl(it.el, state.svg, t.r);
+  if (f) { it.o = { ...it.o, x: f.x, y: f.y, w: f.w, h: f.h }; queueSync(it, 'lfit', t.r); }
+  updateOverlay(); changed();
+}
 function applyImageData(it, data) {
   setHref(it.el, data);
+  normalizeLogo(it, data);
   it.el.setAttribute('data-ge-replaced', '1');
   queueSync(it, 'img', data);
   if (!it.def) { const cur = it.el.getAttribute('preserveAspectRatio'); it.el.setAttribute('preserveAspectRatio', it.el.getAttribute('data-ge-fit') || (cur && cur !== 'none' ? cur : 'xMidYMid slice')); ensureClip(it); }
