@@ -2721,10 +2721,12 @@ function imageCard(it, photo) {
     h('div', { class: 'card-head' }, h('span', { class: 'tag i' }, '▣'), h('span', { class: 'name', title: it.label }, it.label), visBtn(it)),
     h('div', { class: 'img-row' }, thumb,
       h('div', { class: 'col' },
-        h('button', { class: 'btn primary', onclick: () => pickFromDownloads(file, f => replaceImage(it, f)) }, 'Vyměnit obrázek'),
+        photo ? h('button', { class: 'btn primary', onclick: () => pickFromDownloads(file, f => replaceImage(it, f)) }, 'Vyměnit obrázek')
+          : h('button', { class: 'btn primary', onclick: () => openLibrary(it, true) }, 'Z knihovny'),
         it.el.hasAttribute('data-ge-blur') ? h('span', { class: 'small blur-note' }, '✓ Rozmazání z Photoshopu se použije i na novou fotku') : null,
         h('div', { class: 'seg' },
-          h('button', { class: 'btn sm', onclick: () => openLibrary(it) }, 'Z knihovny'),
+          photo ? h('button', { class: 'btn sm', onclick: () => openLibrary(it) }, 'Z knihovny')
+            : h('button', { class: 'btn sm', onclick: () => pickFromDownloads(file, f => replaceImage(it, f)) }, 'Vlastní obrázek'),
           h('button', { class: 'btn sm', title: 'Uložit tenhle obrázek do knihovny log', onclick: () => saveToLibrary(it) }, 'Uložit logo'))), file));
   card.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); card.classList.add('dragover'); });
   card.addEventListener('dragleave', () => card.classList.remove('dragover'));
@@ -3902,7 +3904,7 @@ async function urlToData(url) {
   const b = await r.blob();
   return new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(f.result); f.onerror = rej; f.readAsDataURL(b); });
 }
-async function openLibrary(it) {
+async function openLibrary(it, league) {
   const lib = await getLib();
   const bg = h('div', { class: 'modal-bg' });
   const close = () => bg.remove();
@@ -3911,6 +3913,9 @@ async function openLibrary(it) {
   const files = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
   let cat = LIB_CATS[0]; try { cat = localStorage.getItem('ge-libcat') || LIB_CATS[0]; } catch (e) {}
   if (!LIB_CATS.includes(cat) && cat !== 'Vše') cat = LIB_CATS[0];
+  // z karty loga: rovnou složka ligy, kterou tenhle editor upravuje
+  const lc = FIXSET[state.section] && FIXSET[state.section].cat;
+  if (league && lc && LIB_CATS.includes(lc)) cat = lc;
   const chips = h('div', { class: 'lib-chips' });
   const drawChips = () => {
     chips.innerHTML = '';
