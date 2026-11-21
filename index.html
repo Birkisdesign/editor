@@ -3427,7 +3427,7 @@ async function scorePhoto(det, url) {
   P.sort((a, b) => b.prom - a.prom);
   const main = P[0];
   main.sharp = sharpness(ctx, W, H, main.b);
-  const sh = Math.min(1, main.sharp / 260); // ostrost hlavního hráče 0–1
+  const sh = Math.max(0, Math.min(1, (Math.log(main.sharp + 1) - Math.log(600)) / (Math.log(5000) - Math.log(600)))); // ostrost hlavního hráče 0–1
   const near = q => { const cx = (q.x + q.w / 2) - (main.x + main.w / 2), cy = (q.y + q.h / 2) - (main.y + main.h / 2); return Math.hypot(cx, cy) < Math.max(main.w, main.h) * .75 && q.h > main.h * .5; };
   const crowd = P.length > 7 ? .7 : 1;
   let s;
@@ -3453,7 +3453,7 @@ async function autoPick(fk, manual) {
   try {
     const det = await loadDetector();
     // nejvýš 48 fotek rovnoměrně z celé složky, miniatury se stahují po 6 najednou
-    const all = gal.items, step = Math.max(1, all.length / 48), cand = [];
+    const jp = gal.items.filter(it => /\.(jpe?g|heic|webp)$/i.test(it.name)), all = jp.length ? jp : gal.items, step = Math.max(1, all.length / 48), cand = [];
     for (let k = 0; k < all.length && cand.length < 48; k += step) cand.push(all[Math.floor(k)]);
     gal.autoRun.all = cand.length;
     let best = null, bestS = -1;
