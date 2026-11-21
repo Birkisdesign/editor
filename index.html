@@ -3461,11 +3461,7 @@ function scoreAnalysis(A, olc, darkKit) {
   const good = sh >= .35 && main.prom >= .5; // dost ostrý a dost v popředí
   // jen zápasové fotky: hlavní postava musí být v dresu (ne oblek/bunda) a nesmí to být hlouček (oslava, nástup, focení)
   const inKit = main.cat !== 'dark' || darkKit; // tmavé oblečení je dres jen když soupeř hraje v tmavém
-  const huddle = P.filter(o => o.prom > .35).length >= 5;
-  if (!inKit || huddle) return -1; // není zápasová fotka → vynechat
-  // zblízka useknutá postava bez hráče v souboji (trenér, fanoušek, střídačka) → vynechat
-  const duelAny = P.slice(1).some(o => near(o));
-  if (!main.complete && !duelAny && main.prom > .6) return -1;
+  if (!inKit) return -1; // není zápasová fotka → vynechat
   if (A.odd) return -1; // jiný formát než fotky z foťáku (grafika, screenshot)
   // 1. přednost: hlavní hráč je z Olomouce (a fotka je kvalitní)
   if (isOl(main)) return (good ? 10 : 4) + q + (P.slice(1).some(o => !isOl(o) && near(o)) ? .3 : 0);
