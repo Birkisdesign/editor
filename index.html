@@ -880,7 +880,7 @@ html{background:#05070b}
 
 .ge-svg{clip-path:inset(0)}
 .gal-auto{color:#9fc2ff}
-.fix-note{margin:8px 2px 0;font-size:12px;line-height:1.4;color:#ff8a8a}
+.cf-link{display:flex;justify-content:center;margin-top:8px;text-decoration:none;color:inherit}
 .gal-it.best::after{content:'★ nejlepší';position:absolute;left:4px;top:4px;font:600 10px/1 system-ui,sans-serif;color:#1a1200;background:#ffd34d;padding:3px 5px;border-radius:5px}
 </style>
 </head>
@@ -3141,8 +3141,8 @@ addEventListener('resize', () => placeThumbs());
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeThumbs());
 
 /* ---------- fixtures (ceskyflorbal.cz) ---------- */
-// FBS Olomouc ženy – ČEZ Extraliga 2026/2027, stav k 18. 11. 2026: [kolo, datum, domácí, hosté, skóre, třetiny]
-const FIXTURES = [["1","NE, 13. 9.","FBS Olomouc","Tatran Střešovice","0:8","0:1 - 0:5 - 0:2"],["2","SO, 19. 9.","FbŠ Bohemians","FBS Olomouc","5:1","2:0 - 1:0 - 2:1"],["3","NE, 27. 9.","FBS Olomouc","GC System Bulldogs Brno","1:6","0:2 - 0:3 - 1:1"],["4","NE, 4. 10.","Crazy girls FBC Liberec","FBS Olomouc","5:8","1:4 - 0:2 - 4:2"],["5","NE, 11. 10.","FBS Olomouc","Prague Tigers Nehvizdy","2:3pn","1:1 - 0:1 - 1:0"],["6","SO, 17. 10.","FBC Intevo Třinec","FBS Olomouc","4:0","1:0 - 1:0 - 2:0"],["7","NE, 25. 10.","FBS Olomouc","1. SC TEMPISH Vítkovice","2:10","0:2 - 1:5 - 1:3"],["8","ST, 28. 10.","FBS Olomouc","FBC ČPP MPL STAVEBNINY OSTRAVA","2:8","1:3 - 0:4 - 1:1"],["9","NE, 1. 11.","FAT PIPE FLORBAL CHODOV","FBS Olomouc","6:3","2:1 - 1:2 - 3:0"],["10","NE, 22. 11.","FBS Olomouc","GMS Florbal Chomutov","",""],["11","NE, 29. 11.","K1 Florbal Brno Židenice","FBS Olomouc","",""],["12","NE, 6. 12.","FBS Olomouc","FbŠ Bohemians","",""],["13","SO, 12. 12.","GC System Bulldogs Brno","FBS Olomouc","",""],["14","NE, 20. 12.","FBS Olomouc","Crazy girls FBC Liberec","",""],["15","SO, 9. 1.","Prague Tigers Nehvizdy","FBS Olomouc","",""],["16","NE, 17. 1.","FBS Olomouc","FBC Intevo Třinec","",""],["17","SO, 23. 1.","1. SC TEMPISH Vítkovice","FBS Olomouc","",""],["18","SO, 30. 1.","FBC ČPP MPL STAVEBNINY OSTRAVA","FBS Olomouc","",""],["19","NE, 7. 2.","FBS Olomouc","FAT PIPE FLORBAL CHODOV","",""],["20","SO, 13. 2.","GMS Florbal Chomutov","FBS Olomouc","",""],["21","NE, 28. 2.","FBS Olomouc","K1 Florbal Brno Židenice","",""],["22","NE, 7. 3.","Tatran Střešovice","FBS Olomouc","",""]];
+// FBS Olomouc ženy – ČEZ Extraliga 2026/2027 (ceskyflorbal.cz, 8XW1), stav k 21. 11. 2026: [kolo, datum, domácí, hosté, skóre, třetiny, id zápasu, stav, čas]
+const FIXTURES = [["1", "NE, 13. 9.", "FBS Olomouc", "Tatran Střešovice", "0:8", "0:1 - 0:5 - 0:2", "1308142", "odehráno", ""], ["2", "SO, 19. 9.", "FbŠ Bohemians", "FBS Olomouc", "5:1", "2:0 - 1:0 - 2:1", "1308148", "odehráno", ""], ["3", "NE, 27. 9.", "FBS Olomouc", "GC System Bulldogs Brno", "1:6", "0:2 - 0:3 - 1:1", "1308153", "odehráno", ""], ["4", "NE, 4. 10.", "Crazy girls FBC Liberec", "FBS Olomouc", "5:8", "1:4 - 0:2 - 4:2", "1308161", "odehráno", ""], ["5", "NE, 11. 10.", "FBS Olomouc", "Prague Tigers Nehvizdy", "2:3pn", "1:1 - 0:1 - 1:0", "1308164", "odehráno", ""], ["6", "SO, 17. 10.", "FBC Intevo Třinec", "FBS Olomouc", "4:0", "1:0 - 1:0 - 2:0", "1308174", "odehráno", ""], ["7", "NE, 25. 10.", "FBS Olomouc", "1. SC TEMPISH Vítkovice", "2:10", "0:2 - 1:5 - 1:3", "1308175", "odehráno", ""], ["8", "ST, 28. 10.", "FBS Olomouc", "FBC ČPP MPL STAVEBNINY OSTRAVA", "2:8", "1:3 - 0:4 - 1:1", "1308186", "odehráno", ""], ["9", "NE, 1. 11.", "FAT PIPE FLORBAL CHODOV", "FBS Olomouc", "6:3", "2:1 - 1:2 - 3:0", "1308188", "odehráno", ""], ["10", "NE, 22. 11.", "FBS Olomouc", "GMS Florbal Chomutov", "", "", "1308197", "", "16:00"], ["11", "NE, 29. 11.", "K1 Florbal Brno Židenice", "FBS Olomouc", "", "", "1308201", "", "17:00"], ["12", "NE, 6. 12.", "FBS Olomouc", "FbŠ Bohemians", "", "", "1308208", "", "14:30"], ["13", "SO, 12. 12.", "GC System Bulldogs Brno", "FBS Olomouc", "", "", "1308213", "", "16:30"], ["14", "NE, 20. 12.", "FBS Olomouc", "Crazy girls FBC Liberec", "", "", "1308221", "", ""], ["15", "SO, 9. 1.", "Prague Tigers Nehvizdy", "FBS Olomouc", "", "", "1308224", "", ""], ["16", "NE, 17. 1.", "FBS Olomouc", "FBC Intevo Třinec", "", "", "1308234", "", ""], ["17", "SO, 23. 1.", "1. SC TEMPISH Vítkovice", "FBS Olomouc", "", "", "1308235", "", ""], ["18", "SO, 30. 1.", "FBC ČPP MPL STAVEBNINY OSTRAVA", "FBS Olomouc", "", "", "1308246", "", ""], ["19", "NE, 7. 2.", "FBS Olomouc", "FAT PIPE FLORBAL CHODOV", "", "", "1308248", "", ""], ["20", "SO, 13. 2.", "GMS Florbal Chomutov", "FBS Olomouc", "", "", "1308257", "", ""], ["21", "NE, 28. 2.", "FBS Olomouc", "K1 Florbal Brno Židenice", "", "", "1308261", "", ""], ["22", "NE, 7. 3.", "Tatran Střešovice", "FBS Olomouc", "", "", "1308268", "", ""]];
 const FIX_LOGO = { 'FBS Olomouc': 'FBS Olomouc', 'Tatran Střešovice': 'Tatran Střešovice', 'FbŠ Bohemians': 'Bohemians Praha',
   'GC System Bulldogs Brno': 'Bulldogs', 'Crazy girls FBC Liberec': 'Liberec', 'Prague Tigers Nehvizdy': 'Nehvizdy',
   'FBC Intevo Třinec': 'Třinec', '1. SC TEMPISH Vítkovice': 'Vítkovice', 'FBC ČPP MPL STAVEBNINY OSTRAVA': 'Ostrava',
@@ -3150,8 +3150,8 @@ const FIX_LOGO = { 'FBS Olomouc': 'FBS Olomouc', 'Tatran Střešovice': 'Tatran 
 const SHORT = { 'FBS Olomouc': 'Olomouc', 'Tatran Střešovice': 'Tatran', 'FbŠ Bohemians': 'Bohemians', 'GC System Bulldogs Brno': 'Bulldogs',
   'Crazy girls FBC Liberec': 'Liberec', 'Prague Tigers Nehvizdy': 'Tigers', 'FBC Intevo Třinec': 'Třinec', '1. SC TEMPISH Vítkovice': 'Vítkovice',
   'FBC ČPP MPL STAVEBNINY OSTRAVA': 'Ostrava', 'FAT PIPE FLORBAL CHODOV': 'Chodov', 'GMS Florbal Chomutov': 'Chomutov', 'K1 Florbal Brno Židenice': 'Židenice' };
-// FBS Olomouc muži – 1. liga mužů 2026/2027 (ceskyflorbal.cz, 8XM2), stav k 20. 11. 2026
-const FIX_M = [["1", "NE, 6. 9.", "Florbal Respect Hradec Králové", "FBS Olomouc", "", ""], ["2", "SO, 12. 9.", "FBS Olomouc", "BUTCHIS", "", ""], ["3", "NE, 20. 9.", "TJ Sokol Královské Vinohrady", "FBS Olomouc", "", ""], ["4", "PÁ, 2. 10.", "FBS Olomouc", "TJ Znojmo LAUFEN CZ", "", ""], ["5", "NE, 4. 10.", "FBS Olomouc", "Goldea PANTHERS OTROKOVICE", "", ""], ["6", "NE, 11. 10.", "FBC Vikings Kopřivnice", "FBS Olomouc", "", ""], ["7", "NE, 18. 10.", "FBS Olomouc", "Wizards SO DDM Praha 10", "", ""], ["8", "NE, 25. 10.", "FBŠ SLAVIA Fat Pipe Plzeň", "FBS Olomouc", "", ""], ["9", "ST, 28. 10.", "FBS Olomouc", "Asper Šumperk", "", ""], ["10", "NE, 1. 11.", "FBS Olomouc", "BLACK ANGELS", "", ""], ["11", "NE, 8. 11.", "FBS Olomouc", "ASK Orka Stará Boleslav", "", ""], ["12", "NE, 15. 11.", "Zlín Lions", "FBS Olomouc", "", ""], ["13", "ÚT, 17. 11.", "FBS Olomouc", "Torpedo Havířov", "", ""], ["14", "NE, 22. 11.", "BUTCHIS", "FBS Olomouc", "", ""], ["15", "NE, 29. 11.", "FBS Olomouc", "TJ Sokol Královské Vinohrady", "", ""], ["16", "SO, 5. 12.", "TJ Znojmo LAUFEN CZ", "FBS Olomouc", "", ""], ["17", "NE, 13. 12.", "Goldea PANTHERS OTROKOVICE", "FBS Olomouc", "", ""], ["18", "NE, 20. 12.", "FBS Olomouc", "FBC Vikings Kopřivnice", "", ""], ["19", "NE, 10. 1.", "Wizards SO DDM Praha 10", "FBS Olomouc", "", ""], ["20", "NE, 17. 1.", "FBS Olomouc", "FBŠ SLAVIA Fat Pipe Plzeň", "", ""], ["21", "SO, 23. 1.", "Asper Šumperk", "FBS Olomouc", "", ""], ["22", "NE, 31. 1.", "BLACK ANGELS", "FBS Olomouc", "", ""], ["23", "NE, 7. 2.", "ASK Orka Stará Boleslav", "FBS Olomouc", "", ""], ["24", "NE, 14. 2.", "FBS Olomouc", "Zlín Lions", "", ""], ["25", "SO, 20. 2.", "Torpedo Havířov", "FBS Olomouc", "", ""], ["26", "SO, 27. 2.", "FBS Olomouc", "Florbal Respect Hradec Králové", "", ""]];
+// FBS Olomouc muži – 1. liga mužů 2026/2027 (ceskyflorbal.cz, 8XM2), stav k 21. 11. 2026
+const FIX_M = [["1", "NE, 6. 9.", "Florbal Respect Hradec Králové", "FBS Olomouc", "3:6", "1:0 - 2:2 - 0:4", "1307698", "odehráno", ""], ["2", "SO, 12. 9.", "FBS Olomouc", "BUTCHIS", "5:4p", "1:2 - 2:1 - 1:1", "1307701", "odehráno", ""], ["3", "NE, 20. 9.", "TJ Sokol Královské Vinohrady", "FBS Olomouc", "3:2pn", "1:0 - 1:0 - 0:2", "1307713", "odehráno", ""], ["4", "PÁ, 2. 10.", "FBS Olomouc", "TJ Znojmo LAUFEN CZ", "8:10", "2:3 - 3:4 - 3:3", "1307714", "odehráno", ""], ["5", "NE, 4. 10.", "FBS Olomouc", "Goldea PANTHERS OTROKOVICE", "6:7", "2:2 - 2:3 - 2:2", "1307727", "odehráno", ""], ["6", "NE, 11. 10.", "FBC Vikings Kopřivnice", "FBS Olomouc", "9:5", "1:1 - 4:1 - 4:3", "1307729", "odehráno", ""], ["7", "NE, 18. 10.", "FBS Olomouc", "Wizards SO DDM Praha 10", "4:5pn", "1:0 - 3:3 - 0:1", "1307740", "odehráno", ""], ["8", "NE, 25. 10.", "FBŠ SLAVIA Fat Pipe Plzeň", "FBS Olomouc", "4:2", "0:0 - 2:1 - 2:1", "1307744", "odehráno", ""], ["9", "ST, 28. 10.", "FBS Olomouc", "Asper Šumperk", "7:4", "0:1 - 3:1 - 4:2", "1307753", "odehráno", ""], ["10", "NE, 1. 11.", "FBS Olomouc", "BLACK ANGELS", "4:3pn", "1:1 - 1:0 - 1:2", "1307759", "odehráno", ""], ["11", "NE, 8. 11.", "FBS Olomouc", "ASK Orka Stará Boleslav", "5:9", "3:4 - 1:2 - 1:3", "1307766", "odehráno", ""], ["12", "NE, 15. 11.", "Zlín Lions", "FBS Olomouc", "3:7", "0:3 - 2:3 - 1:1", "1307774", "odehráno", ""], ["13", "ÚT, 17. 11.", "FBS Olomouc", "Torpedo Havířov", "2:7", "0:1 - 1:2 - 1:4", "1307779", "odehráno", ""], ["14", "NE, 22. 11.", "BUTCHIS", "FBS Olomouc", "", "", "1307785", "", "17:00"], ["15", "NE, 29. 11.", "FBS Olomouc", "TJ Sokol Královské Vinohrady", "", "", "1307797", "", "18:00"], ["16", "SO, 5. 12.", "TJ Znojmo LAUFEN CZ", "FBS Olomouc", "", "", "1307798", "", "18:00"], ["17", "NE, 13. 12.", "Goldea PANTHERS OTROKOVICE", "FBS Olomouc", "", "", "1307811", "", "17:30"], ["18", "NE, 20. 12.", "FBS Olomouc", "FBC Vikings Kopřivnice", "", "", "1307813", "", ""], ["19", "NE, 10. 1.", "Wizards SO DDM Praha 10", "FBS Olomouc", "", "", "1307824", "", ""], ["20", "NE, 17. 1.", "FBS Olomouc", "FBŠ SLAVIA Fat Pipe Plzeň", "", "", "1307828", "", ""], ["21", "SO, 23. 1.", "Asper Šumperk", "FBS Olomouc", "", "", "1307837", "", ""], ["22", "NE, 31. 1.", "BLACK ANGELS", "FBS Olomouc", "", "", "1307843", "", ""], ["23", "NE, 7. 2.", "ASK Orka Stará Boleslav", "FBS Olomouc", "", "", "1307850", "", ""], ["24", "NE, 14. 2.", "FBS Olomouc", "Zlín Lions", "", "", "1307858", "", ""], ["25", "SO, 20. 2.", "Torpedo Havířov", "FBS Olomouc", "", "", "1307863", "", ""], ["26", "SO, 27. 2.", "FBS Olomouc", "Florbal Respect Hradec Králové", "", "", "1307873", "", ""]];
 const FIX_LOGO_M = {"FBS Olomouc": "FBS Olomouc", "Florbal Respect Hradec Králové": "Hradec Králové", "BUTCHIS": "Butchis", "TJ Sokol Královské Vinohrady": "SKV", "TJ Znojmo LAUFEN CZ": "Znojmo", "Goldea PANTHERS OTROKOVICE": "Otrokovice", "FBC Vikings Kopřivnice": "Kopřivnice", "Wizards SO DDM Praha 10": "Wizards", "FBŠ SLAVIA Fat Pipe Plzeň": "Slavia Plzeň", "Asper Šumperk": "Šumperk", "BLACK ANGELS": "Black Angels", "ASK Orka Stará Boleslav": "Orka", "Zlín Lions": "Zlín", "Torpedo Havířov": "Havířov"};
 Object.assign(SHORT, {"Florbal Respect Hradec Králové": "Hradec Králové", "BUTCHIS": "Butchis", "TJ Sokol Královské Vinohrady": "Vinohrady", "TJ Znojmo LAUFEN CZ": "Znojmo", "Goldea PANTHERS OTROKOVICE": "Otrokovice", "FBC Vikings Kopřivnice": "Kopřivnice", "Wizards SO DDM Praha 10": "Wizards", "FBŠ SLAVIA Fat Pipe Plzeň": "Slavia Plzeň", "Asper Šumperk": "Šumperk", "BLACK ANGELS": "Black Angels", "ASK Orka Stará Boleslav": "Orka", "Zlín Lions": "Zlín", "Torpedo Havířov": "Havířov"});
 const FIXSET = { zeny: { list: FIXTURES, cat: 'ČEZ Extraliga', logos: FIX_LOGO, key: 'ge-fixture', title: 'ČEZ Extraliga 26/27', root: '', folder: '2026/2027 ČEZ Extraliga' },
@@ -3171,8 +3171,7 @@ function renderFixtures() {
   const box = $('#fixtures'); box.innerHTML = '';
   if (!state.svg || !FIXSET[state.section]) return;
   const F = fx();
-  const label = i => { const [r, d, hm, aw, sc, , , st] = F.list[i]; const live = sc && st && !/odehr/.test(st); return `${r}. kolo · ${d.replace(',', '')} · ${SHORT[hm] || hm} – ${SHORT[aw] || aw}` + (sc ? ` · ${live ? '● ' : ''}${sc}` : ''); };
-  cfSync(state.section, false);
+  const label = i => { const [r, d, hm, aw, sc, , , st] = F.list[i]; const live = sc && st && !/odehr/.test(st); return `${r}. kolo · ${d.replace(',', '')} · ${SHORT[hm] || hm} – ${SHORT[aw] || aw}` + (sc ? ` · ${live ? '● ' : ''}${sc.replace(/pn$/, ' sn').replace(/p$/, ' pp')}` : ''); };
   let cur = ''; try { cur = localStorage.getItem(F.key) || ''; } catch (e) {}
   if (!F.list[cur]) cur = '';
   const btnTxt = h('span', {}, cur !== '' ? label(+cur) : 'Vyber zápas…');
@@ -3195,8 +3194,8 @@ function renderFixtures() {
   });
   const sel = h('div', { class: 'fix-wrap' }, btn, list);
   const card = h('div', { class: 'card fix-card' }, sel);
-  if (cf.err && !cf.old) card.append(h('p', { class: 'fix-note' }, 'Web ceskyflorbal.cz teď skriptu odmítl data (' + cf.err + ').'));
-  if (cf.old) card.append(h('p', { class: 'fix-note' }, 'Výsledky z ceskyflorbal.cz se načtou po aktualizaci Apps Scriptu (nový kód + Nasadit → Spravovat nasazení → Nová verze).'));
+  const cfId = cur !== '' && F.list[+cur][6];
+  if (cfId) card.append(h('a', { class: 'btn sm cf-link', href: CF_URL(cfId), target: '_blank', rel: 'noopener' }, 'Výsledek na ceskyflorbal.cz ↗'));
   box.append(h('h2', {}, 'Zápasy', h('span', {}, F.title)), card);
 }
 async function applyFixture(i) {
@@ -3213,7 +3212,6 @@ async function applyFixture(i) {
   setWebScore(m, sc, per);
   renderMatch(); autoResult(); renderMatchValues(); changed();
   toast(`Nastaven zápas: ${SHORT[hm] || hm} – ${SHORT[aw] || aw}` + (sc !== '0:0' ? ` (${sc})` : ''));
-  cfLive(true);
 }
 // zapíše skóre, třetiny a prodloužení/nájezdy do grafiky
 function setWebScore(m, sc, per) {
@@ -3233,78 +3231,8 @@ function setWebScore(m, sc, per) {
   return true;
 }
 
-/* ---------- výsledky z ceskyflorbal.cz (přes Apps Script; během zápasu průběžně) ---------- */
-const CF_CODE = { zeny: '8XW1', muzi: '8XM2' };
-const cf = { at: {}, old: false, busy: false };
-function cfMerge(sec, items) {
-  const L = FIXSET[sec].list; let ch = false;
-  for (const x of items || []) {
-    const f = L.find(f => f[0] === x.r && (f[2] === x.h || f[3] === x.a)); if (!f) continue;
-    const old = JSON.stringify(f.slice(1, 9));
-    f[1] = x.d || f[1]; f[2] = x.h; f[3] = x.a;
-    if ((x.sc || '') !== (f[4] || '')) { f[4] = x.sc || ''; if (!x.sc) f[5] = ''; }
-    f[6] = x.id || f[6] || ''; f[7] = x.st || ''; f[8] = x.time || f[8] || '';
-    if (JSON.stringify(f.slice(1, 9)) !== old) ch = true;
-  }
-  return ch;
-}
-function cfSave(sec) { try { localStorage.setItem('ge-cf-' + sec, JSON.stringify(FIXSET[sec].list.map(f => f.slice(0, 9)))); } catch (e) {} }
-// uložené výsledky z minula (aby byly hned i bez připojení)
-for (const sec of Object.keys(CF_CODE)) {
-  try {
-    const L = JSON.parse(localStorage.getItem('ge-cf-' + sec) || 'null');
-    if (Array.isArray(L)) L.forEach(r => { const f = FIXSET[sec].list.find(f => f[0] === r[0]); if (f) r.forEach((v, k) => { if (k) f[k] = v; }); });
-  } catch (e) {}
-}
-async function cfSync(sec, force) {
-  if (!gal.url || galBlocked() || !CF_CODE[sec] || cf.old) return;
-  if (!force && Date.now() - (cf.at[sec] || 0) < 3 * 60e3) return;
-  cf.at[sec] = Date.now();
-  try {
-    const j = await gas({ a: 'cf', t: 'list', id: CF_CODE[sec] });
-    cf.err = '';
-    if (cfMerge(sec, j.items)) { cfSave(sec); if (sec === state.section) renderFixtures(); }
-  } catch (e) {
-    if (/akce/.test(e.message || '')) { cf.old = true; if (sec === state.section) renderFixtures(); }
-    else if (/ceskyflorbal/.test(e.message || '')) { cf.err = e.message.replace(/^Chyba skriptu:\s*(Error:\s*)?/, ''); if (sec === state.section) renderFixtures(); }
-  }
-}
-// zvolený zápas: když se hraje (nebo už skončil a ještě nebyl načten), vezmi skóre a třetiny z webu
-async function cfLive(force) {
-  const sec = state.section, F = FIXSET[sec];
-  if (!F || !CF_CODE[sec] || !state.svg || !gal.url || galBlocked() || cf.old || cf.busy) return;
-  let i = -1; try { const v = localStorage.getItem(F.key); i = v === null || v === '' ? -1 : +v; } catch (e) {}
-  const f = F.list[i]; if (!f) return;
-  const st = matchStart(sec, i), now = Date.now();
-  if (!st || now < st.getTime() - 10 * 60e3) return; // ještě se nehraje
-  const key = 'ge-cf-last-' + sec + ':' + i;
-  let last = ''; try { last = localStorage.getItem(key) || ''; } catch (e) {}
-  if (!force && /\|end$/.test(last)) return; // výsledek po konci už je v grafice
-  if (!f[6]) { await cfSync(sec, true); if (!f[6]) return; }
-  cf.busy = true;
-  try {
-    const j = await gas({ a: 'cf', t: 'match', id: f[6] });
-    if (!/^\d+:\d+/.test(j.sc || '')) return;
-    const sig = j.sc + '|' + j.per + '|' + (j.end ? 'end' : 'live');
-    f[4] = j.sc; f[5] = j.per; f[7] = j.end ? 'odehráno' : j.st; cfSave(sec);
-    if (sig === last) return; // nic nového – ruční úpravy nepřepisuj
-    if (!force && !last && now > st.getTime() + 6 * 3600e3) { try { localStorage.setItem(key, sig); } catch (e) {} return; } // starý zápas: grafiku nepřepisuj
-    try { localStorage.setItem(key, sig); } catch (e) {}
-    let cur = ''; try { cur = localStorage.getItem(F.key) || ''; } catch (e) {}
-    if (state.section !== sec || cur !== String(i)) return;
-    const m = matchItems();
-    if (!setWebScore(m, j.sc, j.per)) return;
-    const typing = document.activeElement && document.activeElement.closest && document.activeElement.closest('.match');
-    if (!typing) renderMatch();
-    autoResult(); renderMatchValues(); changed();
-    toast((j.end ? 'Konečný výsledek z ceskyflorbal.cz: ' : 'Živě z ceskyflorbal.cz: ') + j.sc + (j.per ? ' (' + j.per + ')' : ''));
-  } catch (e) {
-    if (/akce/.test(e.message || '')) { cf.old = true; renderFixtures(); }
-  } finally { cf.busy = false; }
-}
-setInterval(() => { if (!document.hidden) { cfLive(false); cfSync(state.section, false); } }, 60e3);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) cfLive(false); });
-window.__cf = { cfSync, cfLive, q: () => { const m = matchItems(); return [getText(m.home), getText(m.away), m.periods && getText(m.periods), m.pn && m.pn.el.style.display, m.pn && getText(m.pn)]; }, set: v => setItemText(matchItems().home, v) };
+/* ---------- výsledky: odkaz na zápas na ceskyflorbal.cz (web nepouští servery, skóre se zadává ručně) ---------- */
+const CF_URL = id => 'https://www.ceskyflorbal.cz/match/detail/default/' + id;
 
 /* ---------- fotky ze zápasu (Google Disk přes Apps Script, bez stahování do počítače) ---------- */
 const TEAM_KEY = { 'FBS Olomouc': 'olomouc', 'Tatran Střešovice': 'tatran', 'FbŠ Bohemians': 'bohemians', 'GC System Bulldogs Brno': 'bulldogs',
@@ -3352,7 +3280,7 @@ async function driveDecrypt(pass) {
 async function galConnectSaved() {
   const p = await askText('Zadej své heslo k webu – Disk se připojí sám:', '', { type: 'password', ok: 'Připojit' });
   if (!p) return;
-  if (await driveDecrypt(p)) { toast('Google Disk připojen.'); renderGallery(); galScan(true); cfSync(state.section, true); cfLive(false); }
+  if (await driveDecrypt(p)) { toast('Google Disk připojen.'); renderGallery(); galScan(true); }
   else toast('Špatné heslo.');
 }
 async function galShare() {
