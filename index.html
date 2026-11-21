@@ -862,7 +862,7 @@ html{background:#05070b}
 #guides i{position:fixed;display:none;pointer-events:none;z-index:30;background:#ff3fa4;box-shadow:0 0 0 .5px rgba(0,0,0,.4)}
 #guides .gv{width:1px;margin-left:-.5px}
 #guides .gh{height:1px;margin-top:-.5px}
-#galPrev{position:fixed;z-index:40;display:grid;place-items:center;background:rgba(5,7,11,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:gpIn .18s ease-out}
+#galPrev{position:fixed;z-index:40;display:grid;place-items:center;background:rgba(5,7,11,.94);animation:gpIn .18s ease-out}
 #galPrev.full{inset:0;padding:calc(16px + env(safe-area-inset-top)) 12px calc(16px + env(safe-area-inset-bottom))}
 #galPrev .gp-in{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:100%;max-height:100%;padding:16px;box-sizing:border-box}
 #galPrev img{max-width:100%;max-height:calc(100% - 40px);object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);cursor:pointer;min-height:0}
@@ -881,6 +881,7 @@ html{background:#05070b}
 aside .card,aside .match,aside .fx-card,#gallery,.gal-grid{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 aside .card{background:#131821!important}
 aside{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(10,13,19,.94)!important}
+aside .btn,aside .seg,aside .hseg{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .ge-svg{clip-path:inset(0)}
 .gal-auto{color:#9fc2ff}
 </style>
@@ -3553,7 +3554,7 @@ function galPump() {
 const galIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { galIO.unobserve(e.target); galLoad(e.target); } }), { rootMargin: '200px' }) : null;
 /* náhled fotky přes celý editor: klik na náhled = použít, znovu na miniaturu / vedle = zavřít */
 function closeGalPrev() {
-  const o = document.getElementById('galPrev'); if (o) o.remove();
+  const o = document.getElementById('galPrev'); if (o) { o.style.display = 'none'; o.remove(); }
   document.querySelectorAll('.gal-it.prev').forEach(x => x.classList.remove('prev'));
   gal.prev = null;
 }
