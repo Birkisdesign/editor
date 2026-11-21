@@ -859,6 +859,9 @@ html{background:#05070b}
   #boardGroup .hs b{font-weight:600}
   header .hspace{display:none!important}
 }
+#guides i{position:fixed;display:none;pointer-events:none;z-index:30;background:#ff3fa4;box-shadow:0 0 0 .5px rgba(0,0,0,.4)}
+#guides .gv{width:1px;margin-left:-.5px}
+#guides .gh{height:1px;margin-top:-.5px}
 </style>
 </head>
 <body>
@@ -2499,19 +2502,46 @@ window.addEventListener('pointermove', e => {
   if (!drag.moved && Math.hypot(ddx, ddy) < 4) return;
   if (!drag.moved) { drag.moved = true; if (state.selected !== drag.target) select(drag.target, e.pointerType !== 'touch'); }
   const it = drag.target;
-  if (it.type === 'image' && !drag.layer && it.o.w) {
-    const m = it.el.getScreenCTM(); if (!m) return; const inv = m.inverse();
-    it.ox = clamp(drag.ox0 + (inv.a * ddx + inv.c * ddy) / it.o.w * 100, -150, 150);
-    it.oy = clamp(drag.oy0 + (inv.b * ddx + inv.d * ddy) / it.o.h * 100, -150, 150);
-    applyImage(it); syncImageCard(it);
-  } else {
-    const m = it.el.parentNode.getScreenCTM(); if (!m) return; const inv = m.inverse();
-    it.dx = drag.dx0 + inv.a * ddx + inv.c * ddy; it.dy = drag.dy0 + inv.b * ddx + inv.d * ddy;
-    applyTransform(it);
-  }
+  const move = (mx, my) => {
+    if (it.type === 'image' && !drag.layer && it.o.w) {
+      const m = it.el.getScreenCTM(); if (!m) return false; const inv = m.inverse();
+      it.ox = clamp(drag.ox0 + (inv.a * mx + inv.c * my) / it.o.w * 100, -150, 150);
+      it.oy = clamp(drag.oy0 + (inv.b * mx + inv.d * my) / it.o.h * 100, -150, 150);
+      applyImage(it); syncImageCard(it);
+    } else {
+      const m = it.el.parentNode.getScreenCTM(); if (!m) return false; const inv = m.inverse();
+      it.dx = drag.dx0 + inv.a * mx + inv.c * my; it.dy = drag.dy0 + inv.b * mx + inv.d * my;
+      applyTransform(it);
+    }
+    return true;
+  };
+  if (!move(ddx, ddy)) return;
+  // vodítka: střed a okraje plátna (přichytí se v blízkosti, Alt = bez přichytávání)
+  if (!e.altKey) {
+    const S = state.svg.getBoundingClientRect(), r = it.el.getBoundingClientRect(), thr = e.pointerType === 'touch' ? 10 : 6;
+    const best = list => list.reduce((a, c) => Math.abs(c[1] - c[0]) < Math.abs(a ? a[1] - a[0] : Infinity) ? c : a, null);
+    const bx = best([[(r.left + r.right) / 2, (S.left + S.right) / 2], [r.left, S.left], [r.right, S.right]]);
+    const by = best([[(r.top + r.bottom) / 2, (S.top + S.bottom) / 2], [r.top, S.top], [r.bottom, S.bottom]]);
+    const ax = bx && Math.abs(bx[1] - bx[0]) < thr ? bx[1] - bx[0] : 0, ay = by && Math.abs(by[1] - by[0]) < thr ? by[1] - by[0] : 0;
+    if (ax || ay) move(ddx + ax, ddy + ay);
+    const r2b = it.el.getBoundingClientRect(), on = (a, b) => Math.abs(a - b) < 0.75;
+    const vx = [[(r2b.left + r2b.right) / 2, (S.left + S.right) / 2], [r2b.left, S.left], [r2b.right, S.right]].filter(c => on(c[0], c[1])).map(c => c[1]);
+    const hy = [[(r2b.top + r2b.bottom) / 2, (S.top + S.bottom) / 2], [r2b.top, S.top], [r2b.bottom, S.bottom]].filter(c => on(c[0], c[1])).map(c => c[1]);
+    showGuides(S, vx, hy);
+  } else showGuides();
   updateOverlay();
 });
+function showGuides(S, xs = [], ys = []) {
+  let g = document.getElementById('guides');
+  if (!g) { g = document.createElement('div'); g.id = 'guides'; document.body.append(g); }
+  g.innerHTML = '';
+  if (!S) return;
+  // čáry kreslíme kousek přes plátno, aby byly vidět i na okraji
+  xs.forEach(x => { const l = document.createElement('i'); l.className = 'gv'; Object.assign(l.style, { display: 'block', left: x + 'px', top: (S.top - 14) + 'px', height: (S.height + 28) + 'px' }); g.append(l); });
+  ys.forEach(y => { const l = document.createElement('i'); l.className = 'gh'; Object.assign(l.style, { display: 'block', top: y + 'px', left: (S.left - 14) + 'px', width: (S.width + 28) + 'px' }); g.append(l); });
+}
 window.addEventListener('pointerup', e => {
+  showGuides();
   if (!drag) return;
   const touch = e.pointerType === 'touch';
   if (!drag.moved) {
