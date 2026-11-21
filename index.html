@@ -3392,7 +3392,7 @@ function torsoColors(ctx, W, H, b) {
     let hu = 0; if (mx !== mn) { hu = mx === r ? ((g - bl) / (mx - mn)) % 6 : mx === g ? (bl - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4; hu *= 60; if (hu < 0) hu += 360; }
     n++;
     if (sat > .45 && v > .3 && (hu <= 18 || hu >= 338)) red++;
-    else if (sat < .18 && v > .75) white++;
+    else if (sat < .25 && v > .58) white++;
     else if (sat > .35 && v > .25) other++;
   }
   return { red: red / n, white: white / n, other: other / n };
@@ -3420,8 +3420,8 @@ async function analyzePhoto(det, url) {
   const preds = (await det.detect(img, 20, 0.4)).filter(p => p.class === 'person');
   const P = preds.map(p => {
     const [x, y, w, h] = p.bbox, c = torsoColors(ctx, W, H, p.bbox);
-    const cat = c.red > .2 ? 'red' : c.white > .35 ? 'white' : 'other';
-    return { b: p.bbox, x, y, w, h, prom: Math.min(1, h / H * 1.25) * p.score, complete: y > H * .01 && y + h < H * .99 && h / w > 1.2, cat };
+    const cat = c.red > .2 ? 'red' : c.white > .3 ? 'white' : c.other > .3 ? 'other' : 'dark';
+    return { b: p.bbox, x, y, w, h, prom: Math.min(1, h / H * 1.25) * p.score, complete: y > H * .01 && y + h < H * .99 && h / w > 1.2, cat, c };
   }).filter(q => q.h > H * .18).sort((a, b) => b.prom - a.prom);
   if (P[0]) P[0].sharp = sharpness(ctx, W, H, P[0].b);
   return { P };
@@ -3444,7 +3444,7 @@ function scoreAnalysis(A, olc) {
 // Olomouc hraje v červené nebo bílé; když soupeř nosí jinou barvu, berou se obě, jinak doma červená / venku bílá
 function olomoucColors(analyses, home) {
   let n = 0, other = 0;
-  analyses.forEach(A => A && A.P.slice(0, 3).forEach(q => { n++; if (q.cat === 'other') other++; }));
+  analyses.forEach(A => A && A.P.slice(0, 3).forEach(q => { n++; if (q.cat === 'other' || q.cat === 'dark') other++; }));
   if (n && other / n > .2) return ['red', 'white'];
   return home ? ['red'] : ['white'];
 }
@@ -3479,7 +3479,7 @@ async function autoPick(fk, manual) {
     const F = fx(), fi = +String(fk).split(':')[1], home = F.list[fi] && F.list[fi][2] === 'FBS Olomouc';
     const olc = olomoucColors(an, home);
     let best = null, bestS = -1; window.__autoLog = [];
-    an.forEach((A, k) => { if (!A) return; const sc = scoreAnalysis(A, olc); window.__autoLog.push([cand[k].name, +sc.toFixed(2), A.P.map(q => q.cat + ':' + q.prom.toFixed(2)).join(' '), Math.round(A.P[0] ? A.P[0].sharp || 0 : 0)]); if (sc > bestS) { bestS = sc; best = cand[k]; } });
+    an.forEach((A, k) => { if (!A) return; const sc = scoreAnalysis(A, olc); window.__autoLog.push([cand[k].name, +sc.toFixed(2), A.P.map(q => q.cat + ':' + q.prom.toFixed(2) + `(${q.c.red.toFixed(2)}/${q.c.white.toFixed(2)}/${q.c.other.toFixed(2)})`).join(' '), Math.round(A.P[0] ? A.P[0].sharp || 0 : 0)]); if (sc > bestS) { bestS = sc; best = cand[k]; } });
     window.__autoOlc = olc;
     if (!best || gal.fixture !== fk) return;
     try { localStorage.setItem('ge-auto-' + fk, best.id); } catch (e) {}
