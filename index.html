@@ -3469,7 +3469,8 @@ async function autoPick(fk, manual) {
     for (let k = 0; k < all.length && cand.length < 48; k += step) cand.push(all[Math.floor(k)]);
     gal.autoRun.all = cand.length;
     const urls = cand.map(() => null); let next = 0;
-    const fetcher = async () => { while (next < cand.length && gal.fixture === fk) { const k = next++; urls[k] = thumbFor(cand[k]); await urls[k]; } };
+    const thumbRetry = async it => { for (let t = 0; t < 3; t++) { const u = await thumbFor(it); if (u) return u; await new Promise(r => setTimeout(r, 1200 * (t + 1))); } return ''; };
+    const fetcher = async () => { while (next < cand.length && gal.fixture === fk) { const k = next++; urls[k] = thumbRetry(cand[k]); await urls[k]; } };
     const pool = Array.from({ length: 6 }, fetcher);
     const an = [];
     for (let k = 0; k < cand.length; k++) {
