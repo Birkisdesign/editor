@@ -3745,9 +3745,35 @@ function renderMatch() {
   matchRefs = { m, H, A };
   const rows = [h('div', { class: 'm-row' }, logo(m.logoH, 'Domácí'), H.el, h('b', { class: 'colon' }, ':'), A.el, logo(m.logoA, 'Hosté'))];
   if (m.periods) {
-    const p = h('input', { type: 'text', class: 'm-text', value: getText(m.periods) });
-    p.addEventListener('input', () => setItemText(m.periods, p.value));
-    p.addEventListener('focus', () => select(m.periods, false));
+    // třetiny: jen číselná klávesnice, dvojtečky a „|“ se doplňují samy (1 číslice za tým a třetinu)
+    const p = h('input', { type: 'text', class: 'm-text', value: getText(m.periods), inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', enterkeyhint: 'done' });
+    const sepOf = () => { const c = getText(m.periods); return /\|/.test(c) ? (/ \| /.test(c) ? ' | ' : '|') : ' - '; };
+    const fmt = (d, full) => {
+      const sep = sepOf(), out = [];
+      for (let k = 0; k < 3; k++) {
+        const a = d[k * 2], b = d[k * 2 + 1];
+        if (full) out.push((a || '0') + ':' + (b || '0'));
+        else if (a !== undefined) out.push(a + ':' + (b !== undefined ? b : ''));
+      }
+      let t = out.join(sep);
+      if (!full && d.length % 2 === 0 && d.length && d.length < 6) t += sep; // hotová třetina → rovnou „|“
+      return t;
+    };
+    const put = d => {
+      d = d.replace(/\D/g, '').slice(0, 6);
+      p.value = fmt(d, false);
+      setItemText(m.periods, fmt(d, true));
+      try { p.setSelectionRange(p.value.length, p.value.length); } catch (e) {}
+    };
+    p.addEventListener('beforeinput', e => {
+      if (!/^delete/.test(e.inputType)) return;
+      e.preventDefault();
+      const all = p.selectionStart === 0 && p.selectionEnd === p.value.length && p.value.length > 0;
+      put(all ? '' : p.value.replace(/\D/g, '').slice(0, -1));
+    });
+    p.addEventListener('input', () => put(p.value));
+    p.addEventListener('focus', () => { select(m.periods, false); setTimeout(() => { try { p.select(); } catch (e) {} }, 0); });
+    p.addEventListener('blur', () => { p.value = getText(m.periods); });
     matchRefs.p = p;
     rows.push(h('label', { class: 'f full' }, String(m.periods.label).replace(/\s*kopie\b.*$/i, ''), p));
   }
