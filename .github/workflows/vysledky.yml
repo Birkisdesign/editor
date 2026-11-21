@@ -1,0 +1,19 @@
+name: Výsledky z ceskyflorbal.cz
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+  push:
+    paths: ['tools/cf.py', '.github/workflows/vysledky.yml']
+permissions:
+  contents: write
+concurrency:
+  group: vysledky
+  cancel-in-progress: false
+jobs:
+  cf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/cf.py
