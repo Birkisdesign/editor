@@ -835,6 +835,30 @@ html{background:#05070b}
   .toast:not(.show){display:none}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
+/* ===== telefon (do 600 px): vlastní jednoduché rozložení ===== */
+@media (max-width:600px){
+  header{gap:8px!important;flex-wrap:nowrap!important;overflow:hidden}
+  header .brand{gap:8px!important;min-width:0}
+  header .sec-badge{font-size:20px!important}
+  #viewGroup,#syncWrap,#btnAnim,#btnLock,#docname{display:none!important}
+  #boardGroup .hs small{display:none}
+  #boardGroup .hs{padding:6px 12px!important}
+  #btnReset,#btnPng{font-size:0!important;width:42px;height:38px;padding:0!important;display:inline-grid;place-items:center;flex:0 0 auto}
+  #btnReset::before{content:"↶";font-size:22px;line-height:1}
+  #btnPng::before{content:"";width:18px;height:18px;background:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M6 10l6 6 6-6M4 21h16'/%3E%3C/svg%3E") center/contain no-repeat;
+    mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M6 10l6 6 6-6M4 21h16'/%3E%3C/svg%3E") center/contain no-repeat}
+  /* grafika přes celou šířku, stránka se normálně posouvá */
+  .stage{position:relative!important;top:auto!important;height:calc((100vw - 16px) * 1.25 + 44px)!important;min-height:0!important}
+  #navPrev,#navNext{display:none!important}
+  .hint{display:none!important}
+  #boardPill{display:none!important}
+  header .brand{flex:0 0 auto!important}
+  #boardGroup{flex:0 1 auto;min-width:0;margin-left:auto}
+  #boardGroup .hs{padding:6px 10px!important;font-size:14px!important}
+  #boardGroup .hs b{font-weight:600}
+  header .hspace{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -2356,7 +2380,7 @@ function updateOverlay() {
 const isSide = () => !!(state.side && state.boards && state.boards.length > 1);
 function fit() {
   if (!state.svg) return;
-  const r = stage.getBoundingClientRect(), pad = 36;
+  const r = stage.getBoundingClientRect(), pad = window.matchMedia('(max-width: 600px)').matches ? 8 : 36;
   let s;
   if (isSide()) {
     const gap = 28, cap = 56, bs = state.boards;
@@ -3371,7 +3395,7 @@ function renderMatch() {
     p.addEventListener('input', () => setItemText(m.periods, p.value));
     p.addEventListener('focus', () => select(m.periods, false));
     matchRefs.p = p;
-    rows.push(h('label', { class: 'f full' }, m.periods.label, p));
+    rows.push(h('label', { class: 'f full' }, String(m.periods.label).replace(/\s*kopie\b.*$/i, ''), p));
   }
   if (m.pn) {
     const cur = () => m.pn.el.style.display === 'none' ? 'none' : (norm(getText(m.pn)) === 'sn' ? 'sn' : 'pp');
@@ -3738,7 +3762,7 @@ function busy(on, text, p) {
   if (text) $('#busyText').textContent = text;
   if (p != null) $('#busyBar').style.width = Math.round(p * 100) + '%';
 }
-function boardKind(b) { const r = b.h / b.w; return r > 1.5 ? 'Story' : r > 1.1 ? 'Příspěvek' : r > 0.9 ? 'Čtverec' : 'Na šířku'; }
+function boardKind(b) { const r = b.h / b.w; return r > 1.5 ? 'Story' : r > 1.1 ? (window.matchMedia('(max-width: 600px)').matches ? 'Post' : 'Příspěvek') : r > 0.9 ? 'Čtverec' : 'Na šířku'; }
 function renderBoards() {
   const box = $('#board'); box.innerHTML = '';
   const bs = state.boards || [];
@@ -3762,10 +3786,12 @@ function switchBoard(i) {
 state.sync = true;
 state.side = window.innerWidth > 880;
 try { const v = localStorage.getItem('ge-side'); if (v !== null) state.side = v === '1'; } catch (e) {}
+const isPhoneLayout = () => window.matchMedia('(max-width: 600px)').matches;
+if (isPhoneLayout()) state.side = false;
 function stepBoard(d) { if (!state.boards || state.boards.length < 2) return; const n = state.boards.length; switchBoard((state.boardIdx + d + n) % n); }
 $('#navPrev').onclick = () => stepBoard(-1);
 $('#navNext').onclick = () => stepBoard(1);
-function setSide(v) { state.side = v; try { localStorage.setItem('ge-side', v ? '1' : '0'); } catch (e) {} renderSide(); }
+function setSide(v) { if (isPhoneLayout()) v = false; state.side = v; try { localStorage.setItem('ge-side', v ? '1' : '0'); } catch (e) {} renderSide(); }
 $('#btnSide').onclick = () => setSide(true);
 $('#btnSingle').onclick = () => setSide(false);
 $('#syncChk').onchange = e => { state.sync = e.target.checked; toast(state.sync ? 'Změny textů a obrázků se propíšou do všech pláten.' : 'Změny se teď dělají jen na aktuálním plátně.'); };
