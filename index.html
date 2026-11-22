@@ -852,7 +852,9 @@ html{background:#05070b}
   .home > .bgfx{position:absolute!important;inset:auto!important;top:0!important;left:0!important;display:block;width:100%;height:calc(100lvh + 240px);contain:paint;will-change:transform}
   /* dočasně bez stadionu na pozadí úvodu (test Safari) */
   .home > .bgfx > :not(.orb){display:none!important}
-  html:has(#home:not([hidden])),html:has(#home:not([hidden])) body{background:#10203f!important}
+  /* úvod: nahoře modrá (pruh pod stavovým řádkem), pod spodní lištou tmavá; stránka se neposouvá */
+  html:has(#home:not([hidden])){background:#05070b linear-gradient(180deg,#10203f 0,#10203f 160px,#05070b 160px) no-repeat!important;overflow:hidden!important;height:100%;overscroll-behavior:none}
+  html:has(#home:not([hidden])) body{background:transparent!important;overflow:hidden!important;height:100%;overscroll-behavior:none}
   .home > .home-in{position:relative;z-index:1;margin:0 auto;
     padding:calc(24px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
   .app{position:relative}
@@ -3029,6 +3031,11 @@ function renderHomeMatches() {
 }
 renderHomeMatches();
 setInterval(renderHomeMatches, 60 * 1000);
+// telefon: úvod se nedá posouvat (ani „gumově“ přetáhnout)
+document.addEventListener('touchmove', e => {
+  const H = document.getElementById('home');
+  if (H && !H.hidden && matchMedia('(max-width:880px)').matches && !e.target.closest('.home-add, .lock-card')) e.preventDefault();
+}, { passive: false });
 // telefon: pozadí úvodu stojí na místě (posun o scrollY; sticky/fixed by v Safari zabarvilo spodní lištu)
 (() => {
   const mq = matchMedia('(max-width:880px)'); let raf = 0;
