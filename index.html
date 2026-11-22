@@ -887,7 +887,10 @@ html{background:#05070b}
 .set-card{position:fixed!important;z-index:140;left:0;right:0;top:50%;margin:0 auto;transform:translateY(-50%)!important;animation:none!important;width:min(380px,calc(100vw - 32px));align-items:stretch!important;text-align:left!important}
 .set-card h1{text-align:center}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;border-top:1px solid rgba(255,255,255,.07)}
-.set-row b{display:block;font-size:15px}.set-row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.set-row b{display:block;font-size:15px}
+.mem-list{max-height:40vh;overflow:auto;margin-bottom:6px}.mem-list .small{color:var(--muted);text-align:center;padding:8px 0}
+.mem-inv{display:flex;flex-direction:column;gap:8px;margin-top:6px}.mem-inv .small{color:var(--muted);font-size:12px}
+.mem-inv code{display:block;word-break:break-all;font-size:11px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);user-select:all}.set-row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 #addBack{position:fixed;inset:0;z-index:135;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 @media (max-width:600px){
   /* horní panel i na úvodní obrazovce (jako v editoru) */
@@ -3190,7 +3193,7 @@ document.querySelector('header .brand .bmark').addEventListener('click', showHom
 document.querySelector('header .brand .bmark').title = 'Zpět na úvodní obrazovku';
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
 $('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
-$('#homeAdd').addEventListener('click', () => openAddForm('invite'));
+$('#homeAdd').addEventListener('click', () => openMembers());
 $('#addClose').addEventListener('click', closeAddForm);
 /* ---------- profilovka vpravo nahoře: nastavení (změna hesla, přidat účastníka) ---------- */
 let addMode = 'add';
@@ -3220,10 +3223,55 @@ function openSettings() {
   const card = h('div', { class: 'lock-card set-card', id: 'setCard' },
     h('h1', {}, 'Nastavení'),
     row('Heslo', 'Platí na tomhle zařízení', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('pass'); } }, 'Změnit heslo')),
-    row('Účastníci', 'Pozvánka: účastník si sám nastaví heslo', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('invite'); } }, 'Pozvat')),
     row('Animace pozadí', null, h('button', { class: 'btn sm', type: 'button', onclick: e => { $('#btnAnim').click(); e.target.textContent = document.documentElement.classList.contains('no-bg-anim') ? 'Zapnout' : 'Vypnout'; } }, anim ? 'Vypnout' : 'Zapnout')),
     h('button', { class: 'btn sm', type: 'button', style: 'margin-top:6px', onclick: closeSettings }, 'Zavřít'));
   document.body.append(back, card);
+}
+const isAdmin = () => !!curUser && USERS.some(u => normName(u.name) === normName(curUser.name));
+async function openMembers() {
+  closeSettings();
+  const back = h('div', { id: 'setBack', onclick: closeSettings });
+  const list = h('div', { class: 'mem-list' }, h('p', { class: 'small' }, 'Načítám účastníky…'));
+  const inv = h('div', { class: 'mem-inv', hidden: true });
+  const card = h('div', { class: 'lock-card set-card', id: 'setCard' },
+    h('h1', {}, 'Účastníci'), list,
+    h('button', { class: 'btn primary', type: 'button', onclick: makeInvite }, '＋ Pozvat účastníka'), inv,
+    h('button', { class: 'btn sm', type: 'button', style: 'margin-top:2px', onclick: closeSettings }, 'Zavřít'));
+  document.body.append(back, card);
+  if (!gal.url || !gal.key) { list.innerHTML = ''; list.append(h('p', { class: 'small' }, 'Nejdřív připoj Google Disk – účastníci se spravují přes tvůj Apps Script.')); return; }
+  const load = async () => {
+    try {
+      const j = await gas({ a: 'users' });
+      list.innerHTML = '';
+      if (!j.users.length) list.append(h('p', { class: 'small' }, 'Zatím tu nikdo není. Pozvi prvního účastníka.'));
+      j.users.forEach(u => list.append(h('div', { class: 'set-row' },
+        h('div', {}, h('b', {}, u.nick), h('small', {}, 'od ' + new Date(u.created).toLocaleDateString('cs-CZ'))),
+        h('button', { class: 'btn sm', type: 'button', onclick: async e => {
+          if (!confirm(`Odebrat účastníka „${u.nick}“? Ztratí přístup k fotkám z Disku.`)) return;
+          e.target.disabled = true; try { await gas({ a: 'revoke', id: u.id }); toast(`„${u.nick}“ odebrán.`); load(); } catch (er) { e.target.disabled = false; toast(er.message); }
+        } }, 'Odebrat'))));
+    } catch (e) {
+      list.innerHTML = '';
+      list.append(h('p', { class: 'small', style: 'color:#ff8a8a' }, /akce|jen správce/.test(e.message) ? 'Apps Script je potřeba aktualizovat (nový kód pro účastníky).' : e.message));
+    }
+  };
+  async function makeInvite(e) {
+    e.target.disabled = true;
+    try {
+      const j = await gas({ a: 'invite' });
+      const link = location.origin + location.pathname + '#pozvanka=' + b64url(JSON.stringify({ u: gal.url, i: j.code }));
+      inv.hidden = false; inv.innerHTML = '';
+      const share = navigator.share && matchMedia('(hover: none)').matches;
+      inv.append(h('p', { class: 'small' }, 'Pošli tenhle odkaz (platí 14 dní, jen pro jednoho účastníka). Po otevření si nastaví přezdívku a heslo.'),
+        h('code', {}, link),
+        h('button', { class: 'btn sm', type: 'button', onclick: async () => {
+          if (share) { try { await navigator.share({ title: 'Pozvánka do Birkis Design', text: 'Nastav si přezdívku a heslo do editoru grafik:', url: link }); return; } catch (er) {} }
+          try { await navigator.clipboard.writeText(link); toast('Odkaz zkopírován.'); } catch (er) { toast('Označ odkaz a zkopíruj ho ručně.'); }
+        } }, share ? 'Sdílet odkaz' : 'Kopírovat odkaz'));
+    } catch (er) { toast(/akce|jen správce/.test(er.message) ? 'Apps Script je potřeba aktualizovat (nový kód pro účastníky).' : er.message); }
+    e.target.disabled = false;
+  }
+  load();
 }
 function closeSettings() { const a = $('#setBack'), b = $('#setCard'); if (a) a.remove(); if (b) b.remove(); }
 function closeAddForm() { $('#addForm').hidden = true; $('#addForm').reset(); const b = $('#addBack'); if (b) b.hidden = true; }
@@ -3234,6 +3282,7 @@ function openUserMenu(btn) {
   const it = (ico, txt, fn) => h('button', { class: 'um-it', type: 'button', onclick: () => { closeUserMenu(); fn(); } }, h('span', { class: 'um-ico' }, ico), txt);
   const items = [
     it('⚙︎', 'Nastavení', openSettings),
+    ...(isAdmin() ? [it('👥', 'Správa účastníků', openMembers)] : []),
     it('↪︎', 'Odhlásit se', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} curUser = null; if (typeof renderAvatars === 'function') renderAvatars(); showLock(); })
   ];
   const m = h('div', { id: 'userMenu', role: 'menu' },
@@ -3252,16 +3301,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeUserM
 function renderAvatars() { const n = (curUser && curUser.name || 'Birkis').slice(0, 1).toUpperCase(); document.querySelectorAll('.avatar-btn .av-i').forEach(e => e.textContent = n); }
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (addMode === 'invite') {
-    const n = $('#addName').value.trim(); if (!n) return;
-    const pl = { n, exp: Date.now() + 14 * 864e5 };
-    if (gal.url && gal.key) { pl.u = gal.url; pl.k = gal.key; } // pozvaný dostane i fotky z Disku
-    const link = location.origin + location.pathname + '#pozvanka=' + b64url(JSON.stringify(pl));
-    $('#addCodeTxt').textContent = link;
-    $('#addCode p').textContent = `Pošli účastníkovi tenhle odkaz (platí 14 dní). Po otevření si nastaví heslo a pak se přihlásí jménem „${n}“.` + (pl.u ? '' : ' Fotky z Disku dostane, až bude Disk připojený u tebe.');
-    $('#addCode').hidden = false; $('#addBtn').hidden = true; $('#addForm .lock-field').hidden = true; $('#addErr').textContent = '';
-    return;
-  }
   // změna hesla: uloží se hned na tomhle zařízení
   const p1 = $('#addPass').value;
   if (p1.length < 6) { $('#addErr').textContent = 'Heslo musí mít aspoň 6 znaků.'; return; }
@@ -3366,7 +3405,13 @@ $('#lockForm').addEventListener('submit', async e => {
   curUser = found;
   try { sessionStorage.setItem('ge-unlock', lockToken());
     if ($('#lockRem').checked) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); } catch (e2) {}
-  if (!gal.url) { const blob = found.drive || (USERS.includes(found) ? DRIVE_CFG : ''); if (blob) driveDecrypt(p1, blob).then(ok => { if (ok) galScan(true); }); }
+  if (found.drive && !USERS.includes(found)) {
+    // účastník: ověř, že ho správce neodebral
+    const ok = await driveDecrypt(p1, found.drive);
+    if (ok) { try { await gas({ a: 'whoami' }); } catch (er) { if (/Tajné slovo/.test(er.message)) {
+      gal.url = gal.key = ''; try { localStorage.removeItem('ge-gas-url'); localStorage.removeItem('ge-gas-key'); sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e4) {}
+      curUser = null; return lockFail('Správce ti odebral přístup.'); } } galScan(true); }
+  } else if (!gal.url) { const blob = found.drive || (USERS.includes(found) ? DRIVE_CFG : ''); if (blob) driveDecrypt(p1, blob).then(ok => { if (ok) galScan(true); }); }
   $('#lockPass').value = ''; hideLock(); showHome(); renderHomeMatches && renderHomeMatches();
 });
 $('#lockCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lockCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
@@ -3538,26 +3583,39 @@ var invite = null;
 (() => {
   const m = /[#&]pozvanka=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
   try { invite = JSON.parse(unb64url(m[1])); } catch (e) { invite = null; }
-  if (!invite || !invite.n) { invite = null; return; }
-  if (invite.exp && Date.now() > invite.exp) { invite = null; setTimeout(() => toast('Pozvánka už vypršela – požádej o novou.'), 600); return; }
+  if (!invite) return;
+  if (!invite.u || !invite.i) { invite = null; return; }
   showLock();
-  $('#lockSub').textContent = `Vítej, ${invite.n}! Nastav si heslo do editoru`;
-  $('#lockName').value = invite.n; $('#lockName').readOnly = true;
-  $('#lockPass').placeholder = 'Nové heslo'; $('#lockPass').autocomplete = 'new-password';
+  $('#lockSub').textContent = 'Vítej! Zvol si přezdívku a heslo do editoru';
+  $('#lockName').value = ''; $('#lockName').placeholder = 'Přezdívka'; $('#lockName').required = true;
+  $('#lockPass').placeholder = 'Heslo'; $('#lockPass').autocomplete = 'new-password';
   $('#lockPass2').hidden = false; $('#lockPass2').required = true;
   $('#lockBtn').textContent = 'Vytvořit účet';
+  setTimeout(() => $('#lockName').focus(), 350);
 })();
 async function inviteRegister(p1) {
+  const nick = $('#lockName').value.trim();
+  if (!nick) return lockFail('Zadej přezdívku.');
   if (p1.length < 6) return lockFail('Heslo musí mít aspoň 6 znaků.');
   if (p1 !== $('#lockPass2').value) return lockFail('Hesla se neshodují.');
   $('#lockBtn').disabled = true; $('#lockBtn').textContent = 'Vytvářím účet…';
-  if (invite.u && invite.k) { gal.url = invite.u; gal.key = invite.k; gal.ok = true; try { localStorage.setItem('ge-gas-url', gal.url); localStorage.setItem('ge-gas-key', gal.key); } catch (e) {} }
-  const u = await makeAccount(invite.n, p1);
+  let j = null;
+  try {
+    const url = new URL(invite.u); url.searchParams.set('a', 'join'); url.searchParams.set('inv', invite.i); url.searchParams.set('nick', nick);
+    j = await (await fetch(url.toString(), { redirect: 'follow' })).json();
+  } catch (e) { j = { error: 'sit' }; }
+  $('#lockBtn').disabled = false; $('#lockBtn').textContent = 'Vytvořit účet';
+  if (!j || j.error || !j.token) {
+    const er = j && j.error || '';
+    return lockFail(/obsazeno/.test(er) ? 'Tahle přezdívka už je obsazená, zvol jinou.' : /pozvanka/.test(er) ? 'Pozvánka už neplatí (použitá nebo prošlá). Požádej o novou.' : /akce|klic/.test(er) ? 'Správce musí aktualizovat Apps Script.' : 'Účet se nepodařilo vytvořit, zkus to znovu.');
+  }
+  gal.url = invite.u; gal.key = j.token; gal.ok = true; try { localStorage.setItem('ge-gas-url', gal.url); localStorage.setItem('ge-gas-key', gal.key); } catch (e) {}
+  const u = await makeAccount(j.nick || nick, p1);
   saveLocalUser(u); curUser = u; invite = null;
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   try { sessionStorage.setItem('ge-unlock', lockToken()); localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); localStorage.setItem('ge-last-name', u.name); } catch (e) {}
   $('#lockBtn').disabled = false; $('#lockBtn').textContent = 'Odemknout';
-  $('#lockName').readOnly = false; $('#lockPass2').hidden = true; $('#lockPass2').required = false; $('#lockPass').placeholder = 'Heslo';
+  $('#lockName').placeholder = 'Jméno'; $('#lockName').required = false; $('#lockPass2').hidden = true; $('#lockPass2').required = false; $('#lockPass').placeholder = 'Heslo';
   $('#lockPass').value = ''; $('#lockPass2').value = ''; hideLock(); showHome(); if (typeof renderHomeMatches === 'function') renderHomeMatches();
   toast(`Účet vytvořen. Příště se přihlas jménem „${u.name}“.`);
   if (gal.url) galScan(true);
