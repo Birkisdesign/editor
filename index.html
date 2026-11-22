@@ -854,7 +854,16 @@ html{background:#05070b}
   .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
 /* ===== telefon (do 600 px): vlastní jednoduché rozložení ===== */
+.home-bar{display:none}
 @media (max-width:600px){
+  /* horní panel i na úvodní obrazovce (jako v editoru) */
+  .home-bar{display:flex!important;align-items:center;justify-content:flex-start;position:sticky!important;top:0;z-index:3;width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box;
+    padding:calc(8px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 8px calc(14px + env(safe-area-inset-left));min-height:52px;
+    background:rgba(14,17,24,.55);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 8px 30px rgba(0,0,0,.25)}
+  .home-bar .brand{margin:0}
+  .home .home-top{display:none}
+  .home > .home-in{padding-top:22px!important}
   header{gap:8px!important;flex-wrap:nowrap!important;overflow:hidden}
   header .brand{gap:8px!important;min-width:0}
   header .sec-badge{font-size:20px!important}
@@ -904,6 +913,7 @@ html{background:#05070b}
 </head>
 <body>
 <div id="home" class="home">
+  <div class="home-bar" aria-hidden="true"><div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span></div></div>
   <div class="home-in">
     <div class="home-top"><i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i><span class="home-brand">Birkis Design</span></div>
     <h1 class="home-title">Vítej<span id="homeName"></span></h1>
