@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta charset="utf-8">
-<meta name="theme-color" content="#0c0f15">
+<meta name="theme-color" content="#10203f">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Birkis Design</title>
 <style>
@@ -852,7 +852,7 @@ html{background:#05070b}
   .home > .bgfx{position:absolute!important;inset:auto!important;top:0!important;left:0!important;display:block;width:100%;height:calc(100lvh + 240px);contain:paint;will-change:transform}
   /* dočasně bez stadionu na pozadí úvodu (test Safari) */
   .home > .bgfx > :not(.orb){display:none!important}
-  html:has(#home:not([hidden])),html:has(#home:not([hidden])) body{background:#0c0f15!important}
+  html:has(#home:not([hidden])),html:has(#home:not([hidden])) body{background:#10203f!important}
   .home > .home-in{position:relative;z-index:1;margin:0 auto;
     padding:calc(24px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
   .app{position:relative}
@@ -866,12 +866,15 @@ html{background:#05070b}
   /* horní panel i na úvodní obrazovce (jako v editoru) */
   .home-bar{display:flex!important;align-items:center;justify-content:flex-start;position:sticky!important;top:0;z-index:3;width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box;
     padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));min-height:calc(61px + env(safe-area-inset-top));
-    background:#0c0f15;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
-    border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+    background:#10203f;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+    border-bottom:0;box-shadow:none}
   .home-bar .brand{margin:0;gap:8px!important}
   /* barva panelu i nad ním (při přetažení stránky dolů / pod stavovým řádkem) */
-  .home-bar::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:100vh;background:#0c0f15;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%)}
+  .home-bar::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:100vh;background:#10203f;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%)}
   .home .home-top{display:none}
+  /* barva panelu plynule přechází do stránky (jako u jiných webů) */
+  .home > .home-in::before{content:'';position:absolute;left:0;right:0;top:0;width:auto;height:420px;transform:none;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,#10203f 0%,rgba(16,32,63,.85) 25%,rgba(16,32,63,.4) 60%,rgba(16,32,63,0) 100%)}
   .home > .home-in{padding-top:22px!important}
   header{gap:8px!important;flex-wrap:nowrap!important;overflow:hidden}
   header .brand{gap:8px!important;min-width:0}
