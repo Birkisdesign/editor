@@ -975,7 +975,7 @@ html{background:#05070b}
       <button class="tile" data-sec="zeny"><span class="tile-ico">♀</span><span class="tile-alert" hidden title="Dnes se hraje"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="8.6" y="4" width="2.8" height="8" rx="1.4" fill="#fff"/><circle cx="10" cy="15.3" r="1.6" fill="#fff"/></svg></span><b>Editor</b><span class="tile-name">Ženy</span><span class="tile-match" data-team="zeny"></span></button>
     </div>
     <p class="home-note">Rozpis zápasů z ceskyflorbal.cz</p>
-    <div class="home-foot"><button class="btn sm" id="homeAdd">＋ Přidat účastníka</button><button class="btn sm" id="homeAnim" title="Zapnout / vypnout animaci pozadí">◐ Animace</button><button class="btn sm" id="homeLock" hidden>🔒 Zamknout</button></div>
+    <div class="home-foot"><button class="btn sm" id="homeAdd">＋ Pozvat účastníka</button><button class="btn sm" id="homeAnim" title="Zapnout / vypnout animaci pozadí">◐ Animace</button><button class="btn sm" id="homeLock" hidden>🔒 Zamknout</button></div>
   </div>
   <form class="lock-card home-add" id="addForm" hidden autocomplete="off">
     <h1>Nový účastník</h1>
@@ -992,8 +992,9 @@ html{background:#05070b}
   <form class="lock-card" id="lockForm" autocomplete="off">
     <i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i>
     <h1>Birkis Design</h1>
-    <p class="lock-sub" id="lockSub">Zadej heslo pro vstup do editoru</p>
-    <div class="lock-field"><input type="password" id="lockPass" placeholder="Heslo" autocomplete="current-password" required>
+    <p class="lock-sub" id="lockSub">Přihlas se jménem a heslem</p>
+    <div class="lock-field"><input id="lockName" placeholder="Jméno" autocomplete="username" autocapitalize="words">
+      <input type="password" id="lockPass" placeholder="Heslo" autocomplete="current-password" required>
       <input type="password" id="lockPass2" placeholder="Heslo znovu" autocomplete="new-password" hidden></div>
     <label class="lock-rem"><input type="checkbox" id="lockRem" checked> Zapamatovat na tomto zařízení</label>
     <button class="btn primary lock-btn" id="lockBtn" type="submit">Odemknout</button>
@@ -3189,7 +3190,7 @@ document.querySelector('header .brand .bmark').addEventListener('click', showHom
 document.querySelector('header .brand .bmark').title = 'Zpět na úvodní obrazovku';
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
 $('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
-$('#homeAdd').addEventListener('click', () => openAddForm('add'));
+$('#homeAdd').addEventListener('click', () => openAddForm('invite'));
 $('#addClose').addEventListener('click', closeAddForm);
 /* ---------- profilovka vpravo nahoře: nastavení (změna hesla, přidat účastníka) ---------- */
 let addMode = 'add';
@@ -3200,12 +3201,14 @@ function openAddForm(mode) {
   let back = $('#addBack'); if (!back) { back = document.createElement('div'); back.id = 'addBack'; back.addEventListener('click', closeAddForm); document.body.append(back); }
   back.hidden = false;
   const pass = mode === 'pass';
-  F.querySelector('h1').textContent = pass ? 'Změna hesla' : 'Nový účastník';
-  F.querySelector('.lock-sub').textContent = pass ? 'Nastav si nové heslo pro ' + (curUser && curUser.name || 'svůj účet') : 'Jméno se zobrazí na úvodní obrazovce';
-  $('#addName').hidden = pass; $('#addName').required = !pass; $('#addName').value = pass ? (curUser && curUser.name || 'Birkis') : '';
-  $('#addPass').placeholder = pass ? 'Nové heslo' : 'Heslo';
-  $('#addBtn').textContent = pass ? 'Vytvořit kód nového hesla' : 'Vytvořit';
-  $('#addCode p').textContent = pass ? 'Pošli tento kód Claudovi, vymění tvoje heslo (staré pak přestane platit):' : 'Pošli tento kód Claudovi, přidá účastníka do webu:';
+  F.querySelector('h1').textContent = pass ? 'Změna hesla' : 'Pozvat účastníka';
+  F.querySelector('.lock-sub').textContent = pass ? 'Nové heslo pro ' + (curUser && curUser.name || 'tvůj účet') + ' – platí na tomhle zařízení' : 'Vytvoří odkaz, kde si účastník sám nastaví heslo';
+  $('#addName').hidden = pass; $('#addName').required = !pass; $('#addName').value = '';
+  $('#addPass').hidden = !pass; $('#addPass2').hidden = !pass; $('#addPass').required = pass; $('#addPass2').required = pass;
+  $('#addPass').placeholder = 'Nové heslo';
+  $('#addBtn').textContent = pass ? 'Uložit heslo' : 'Vytvořit pozvánku';
+  $('#addCode p').textContent = 'Pošli účastníkovi tenhle odkaz (platí 14 dní). Po otevření si nastaví heslo a přihlásí se jménem ' + '„' + ($('#addName').value || '') + '“.';
+  $('#addCopy').textContent = navigator.share && matchMedia('(hover: none)').matches ? 'Sdílet odkaz' : 'Kopírovat odkaz';
   F.hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = '';
   setTimeout(() => (pass ? $('#addPass') : $('#addName')).focus(), 50);
 }
@@ -3216,7 +3219,8 @@ function openSettings() {
   const row = (label, sub, btn) => h('div', { class: 'set-row' }, h('div', {}, h('b', {}, label), sub ? h('small', {}, sub) : null), btn);
   const card = h('div', { class: 'lock-card set-card', id: 'setCard' },
     h('h1', {}, 'Nastavení'),
-    row('Heslo', 'Vytvoří kód, který pošleš Claudovi', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('pass'); } }, 'Změnit heslo')),
+    row('Heslo', 'Platí na tomhle zařízení', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('pass'); } }, 'Změnit heslo')),
+    row('Účastníci', 'Pozvánka: účastník si sám nastaví heslo', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('invite'); } }, 'Pozvat')),
     row('Animace pozadí', null, h('button', { class: 'btn sm', type: 'button', onclick: e => { $('#btnAnim').click(); e.target.textContent = document.documentElement.classList.contains('no-bg-anim') ? 'Zapnout' : 'Vypnout'; } }, anim ? 'Vypnout' : 'Zapnout')),
     h('button', { class: 'btn sm', type: 'button', style: 'margin-top:6px', onclick: closeSettings }, 'Zavřít'));
   document.body.append(back, card);
@@ -3230,7 +3234,6 @@ function openUserMenu(btn) {
   const it = (ico, txt, fn) => h('button', { class: 'um-it', type: 'button', onclick: () => { closeUserMenu(); fn(); } }, h('span', { class: 'um-ico' }, ico), txt);
   const items = [
     it('⚙︎', 'Nastavení', openSettings),
-    it('＋', 'Přidat účastníka', () => openAddForm('add')),
     it('↪︎', 'Odhlásit se', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} curUser = null; if (typeof renderAvatars === 'function') renderAvatars(); showLock(); })
   ];
   const m = h('div', { id: 'userMenu', role: 'menu' },
@@ -3249,15 +3252,45 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeUserM
 function renderAvatars() { const n = (curUser && curUser.name || 'Birkis').slice(0, 1).toUpperCase(); document.querySelectorAll('.avatar-btn .av-i').forEach(e => e.textContent = n); }
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const n = $('#addName').value.trim(), p1 = $('#addPass').value;
-  if (!n) return; if (p1.length < 6) { $('#addErr').textContent = 'Heslo musí mít aspoň 6 znaků.'; return; }
+  if (addMode === 'invite') {
+    const n = $('#addName').value.trim(); if (!n) return;
+    const pl = { n, exp: Date.now() + 14 * 864e5 };
+    if (gal.url && gal.key) { pl.u = gal.url; pl.k = gal.key; } // pozvaný dostane i fotky z Disku
+    const link = location.origin + location.pathname + '#pozvanka=' + b64url(JSON.stringify(pl));
+    $('#addCodeTxt').textContent = link;
+    $('#addCode p').textContent = `Pošli účastníkovi tenhle odkaz (platí 14 dní). Po otevření si nastaví heslo a pak se přihlásí jménem „${n}“.` + (pl.u ? '' : ' Fotky z Disku dostane, až bude Disk připojený u tebe.');
+    $('#addCode').hidden = false; $('#addBtn').hidden = true; $('#addForm .lock-field').hidden = true; $('#addErr').textContent = '';
+    return;
+  }
+  // změna hesla: uloží se hned na tomhle zařízení
+  const p1 = $('#addPass').value;
+  if (p1.length < 6) { $('#addErr').textContent = 'Heslo musí mít aspoň 6 znaků.'; return; }
   if (p1 !== $('#addPass2').value) { $('#addErr').textContent = 'Hesla se neshodují.'; return; }
-  const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-  $('#addBtn').disabled = true; const hash = await lockHash(p1, salt, LOCK_ITER); $('#addBtn').disabled = false;
-  $('#addCodeTxt').textContent = `BDUSER:${encodeURIComponent(n)}:${salt}:${hash}:${LOCK_ITER}`;
-  $('#addCode').hidden = false; $('#addBtn').hidden = true; $('#addForm .lock-field').hidden = true; $('#addErr').textContent = '';
+  $('#addBtn').disabled = true;
+  const u = await makeAccount(curUser && curUser.name || 'Birkis', p1);
+  $('#addBtn').disabled = false;
+  saveLocalUser(u); curUser = u;
+  try { sessionStorage.setItem('ge-unlock', lockToken()); const v = JSON.parse(localStorage.getItem('ge-unlock') || 'null'); if (v) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: v.exp })); } catch (e2) {}
+  closeAddForm(); toast('Heslo změněno (platí na tomhle zařízení).');
 });
-$('#addCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#addCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
+const b64url = str => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64url = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+// účet = jméno + otisk hesla (PBKDF2); připojení Disku zašifrované heslem
+async function makeAccount(name, pass) {
+  const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+  const u = { name, salt, hash: await lockHash(pass, salt, LOCK_ITER), iter: LOCK_ITER };
+  if (gal.url && gal.key) {
+    const ds = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await driveKey(pass, ds), new TextEncoder().encode(JSON.stringify({ u: gal.url, k: gal.key }))));
+    u.drive = `BDDRIVE:${b64e(ds)}:${b64e(iv)}:${b64e(ct)}`;
+  }
+  return u;
+}
+$('#addCopy').addEventListener('click', async () => {
+  const t = $('#addCodeTxt').textContent;
+  if (navigator.share && matchMedia('(hover: none)').matches) { try { await navigator.share({ title: 'Pozvánka do Birkis Design', text: 'Nastav si heslo do editoru grafik:', url: t }); return; } catch (e) {} }
+  try { await navigator.clipboard.writeText(t); toast('Odkaz zkopírován.'); } catch (e) { toast('Označ odkaz a zkopíruj ho ručně.'); }
+});
 $('#secBadge').hidden = false; $('#secBadge').textContent = SEC_NAMES[state.section] || '';
 
 /* ---------- zamykací obrazovka (heslo ověřené v prohlížeči) ---------- */
@@ -3277,7 +3310,12 @@ async function lockHash(pass, saltB64, iter) {
 }
 let curUser = null;
 function lockToken(u) { u = u || curUser; return u ? 'ok:' + u.hash.slice(0, 16) : ''; }
-function userFromToken(t) { return USERS.find(u => lockToken(u) === t) || null; }
+function localUsers() { try { const a = JSON.parse(localStorage.getItem('ge-accounts') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function saveLocalUser(u) { const a = localUsers().filter(x => normName(x.name) !== normName(u.name)); a.push(u); try { localStorage.setItem('ge-accounts', JSON.stringify(a)); } catch (e) {} }
+const normName = n => String(n || '').trim().toLocaleLowerCase('cs').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+// místní účet se stejným jménem má přednost (změna hesla na tomhle zařízení)
+function allUsers() { const L = localUsers(); return [...L, ...USERS.filter(u => !L.some(x => normName(x.name) === normName(u.name)))]; }
+function userFromToken(t) { return allUsers().find(u => lockToken(u) === t) || null; }
 function isUnlocked() {
   try {
     const st = sessionStorage.getItem('ge-unlock'); let u = st && userFromToken(st);
@@ -3290,7 +3328,8 @@ function showLock() {
   if (typeof showHome === 'function') showHome();
   const L = $('#lock'); L.hidden = false; L.classList.remove('out');
   const setup = !LOCK.hash;
-  $('#lockSub').textContent = setup ? 'Vytvoř si heslo k editoru' : 'Zadej heslo pro vstup do editoru';
+  $('#lockSub').textContent = setup ? 'Vytvoř si heslo k editoru' : 'Přihlas se jménem a heslem';
+  try { if (!$('#lockName').value) $('#lockName').value = localStorage.getItem('ge-last-name') || ''; } catch (e) {}
   $('#lockPass2').hidden = !setup; $('#lockPass2').required = setup;
   $('#lockPass').autocomplete = setup ? 'new-password' : 'current-password';
   $('#lockBtn').textContent = setup ? 'Vytvořit heslo' : 'Odemknout';
@@ -3317,13 +3356,17 @@ $('#lockForm').addEventListener('submit', async e => {
   }
   $('#lockBtn').disabled = true; $('#lockBtn').textContent = 'Ověřuji…';
   let found = null;
-  for (const u of USERS) { if ((await lockHash(p1, u.salt, LOCK_ITER)) === u.hash) { found = u; break; } }
+  if (invite) { $('#lockBtn').disabled = false; return inviteRegister(p1); }
+  const nm = normName($('#lockName').value);
+  const cand = allUsers().filter(u => !nm || normName(u.name) === nm);
+  for (const u of cand) { if ((await lockHash(p1, u.salt, u.iter || LOCK_ITER)) === u.hash) { found = u; break; } }
   $('#lockBtn').disabled = false; $('#lockBtn').textContent = 'Odemknout';
-  if (!found) return lockFail('Špatné heslo.');
+  if (!found) return lockFail(nm && !cand.length ? 'Účet s tímhle jménem neznám.' : 'Špatné jméno nebo heslo.');
+  try { localStorage.setItem('ge-last-name', found.name); } catch (e3) {}
   curUser = found;
   try { sessionStorage.setItem('ge-unlock', lockToken());
     if ($('#lockRem').checked) localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); } catch (e2) {}
-  if (DRIVE_CFG && !gal.url) driveDecrypt(p1).then(ok => { if (ok) galScan(true); });
+  if (!gal.url) { const blob = found.drive || (USERS.includes(found) ? DRIVE_CFG : ''); if (blob) driveDecrypt(p1, blob).then(ok => { if (ok) galScan(true); }); }
   $('#lockPass').value = ''; hideLock(); showHome(); renderHomeMatches && renderHomeMatches();
 });
 $('#lockCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lockCodeTxt').textContent); toast('Kód zkopírován.'); } catch (e) { toast('Označ kód a zkopíruj ho ručně.'); } });
@@ -3480,15 +3523,44 @@ async function driveKey(pass, salt) {
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: LOCK_ITER }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
-async function driveDecrypt(pass) {
+async function driveDecrypt(pass, blob) {
   try {
-    const [, salt, iv, ct] = DRIVE_CFG.split(':');
+    const [, salt, iv, ct] = (blob || DRIVE_CFG).split(':');
     const k = await driveKey(pass, b64d(salt));
     const j = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(iv) }, k, b64d(ct))));
     gal.url = j.u; gal.key = j.k; gal.ok = true; gal.dirCache.clear();
     try { localStorage.setItem('ge-gas-url', gal.url); localStorage.setItem('ge-gas-key', gal.key); } catch (e) {}
     return true;
   } catch (e) { return false; }
+}
+/* ---------- pozvánka (#pozvanka=…): účastník si nastaví heslo ---------- */
+var invite = null;
+(() => {
+  const m = /[#&]pozvanka=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
+  try { invite = JSON.parse(unb64url(m[1])); } catch (e) { invite = null; }
+  if (!invite || !invite.n) { invite = null; return; }
+  if (invite.exp && Date.now() > invite.exp) { invite = null; setTimeout(() => toast('Pozvánka už vypršela – požádej o novou.'), 600); return; }
+  showLock();
+  $('#lockSub').textContent = `Vítej, ${invite.n}! Nastav si heslo do editoru`;
+  $('#lockName').value = invite.n; $('#lockName').readOnly = true;
+  $('#lockPass').placeholder = 'Nové heslo'; $('#lockPass').autocomplete = 'new-password';
+  $('#lockPass2').hidden = false; $('#lockPass2').required = true;
+  $('#lockBtn').textContent = 'Vytvořit účet';
+})();
+async function inviteRegister(p1) {
+  if (p1.length < 6) return lockFail('Heslo musí mít aspoň 6 znaků.');
+  if (p1 !== $('#lockPass2').value) return lockFail('Hesla se neshodují.');
+  $('#lockBtn').disabled = true; $('#lockBtn').textContent = 'Vytvářím účet…';
+  if (invite.u && invite.k) { gal.url = invite.u; gal.key = invite.k; gal.ok = true; try { localStorage.setItem('ge-gas-url', gal.url); localStorage.setItem('ge-gas-key', gal.key); } catch (e) {} }
+  const u = await makeAccount(invite.n, p1);
+  saveLocalUser(u); curUser = u; invite = null;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  try { sessionStorage.setItem('ge-unlock', lockToken()); localStorage.setItem('ge-unlock', JSON.stringify({ t: lockToken(), exp: Date.now() + 30 * 864e5 })); localStorage.setItem('ge-last-name', u.name); } catch (e) {}
+  $('#lockBtn').disabled = false; $('#lockBtn').textContent = 'Odemknout';
+  $('#lockName').readOnly = false; $('#lockPass2').hidden = true; $('#lockPass2').required = false; $('#lockPass').placeholder = 'Heslo';
+  $('#lockPass').value = ''; $('#lockPass2').value = ''; hideLock(); showHome(); if (typeof renderHomeMatches === 'function') renderHomeMatches();
+  toast(`Účet vytvořen. Příště se přihlas jménem „${u.name}“.`);
+  if (gal.url) galScan(true);
 }
 async function galConnectSaved() {
   const p = await askText('Zadej své heslo k webu – Disk se připojí sám:', '', { type: 'password', ok: 'Připojit' });
@@ -3499,7 +3571,7 @@ async function galConnectSaved() {
 async function galShare() {
   const p = await askText('Zadej své heslo k webu. Připojení Disku se jím zašifruje, aby fungovalo na všech tvých zařízeních:', '', { type: 'password', ok: 'Pokračovat' });
   if (!p) return;
-  let okUser = false; for (const u of USERS) { if ((await lockHash(p, u.salt, LOCK_ITER)) === u.hash) { okUser = true; break; } }
+  let okUser = false; for (const u of allUsers()) { if ((await lockHash(p, u.salt, u.iter || LOCK_ITER)) === u.hash) { okUser = true; break; } }
   if (!okUser) return toast('Špatné heslo.');
   const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await driveKey(p, salt), new TextEncoder().encode(JSON.stringify({ u: gal.url, k: gal.key }))));
