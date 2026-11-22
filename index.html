@@ -872,6 +872,10 @@ html{background:#05070b}
   /* barva panelu i nad ním (při přetažení stránky dolů / pod stavovým řádkem) */
   .home-bar::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:100vh;background:#10203f;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%)}
   .home .home-top{display:none}
+  /* editor: stejný horní panel jako na úvodu (modrý, barva i pod stavovým řádkem, stín) */
+  html:has(#home[hidden]),html:has(#home[hidden]) body{background:#10203f!important}
+  header{background:#10203f!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+    border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:0 10px 28px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35)!important}
   .home > .home-in{padding-top:22px!important}
   header{gap:8px!important;flex-wrap:nowrap!important;overflow:hidden}
   header .brand{gap:8px!important;min-width:0}
