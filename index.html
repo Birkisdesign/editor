@@ -809,6 +809,7 @@ body{background:#05070b!important}
 /* horní lišta: jen logo (= domů) a štítek sekce */
 header .brand > span{display:none!important}
 #btnHome{display:none!important}
+header .avatar-btn{width:36px;height:36px;font-size:16px;margin-left:2px}
 header .brand .bmark{cursor:pointer;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
 header .brand .bmark:hover{transform:scale(1.08)}
 header .brand .bmark:active{transform:scale(.95)}
@@ -864,6 +865,22 @@ html{background:#05070b}
 }
 /* ===== telefon (do 600 px): vlastní jednoduché rozložení ===== */
 .home-bar{display:none}
+.avatar-btn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;padding:0;border:1px solid rgba(255,255,255,.16);cursor:pointer;
+  background:linear-gradient(145deg,#3d8bff,#1d3f86);color:#fff;font:700 17px/1 "Barlow Condensed","Inter",system-ui,sans-serif;letter-spacing:.02em;
+  display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .12s}
+.avatar-btn:hover{transform:scale(1.05)}.avatar-btn:active{transform:scale(.95)}
+.home-bar .avatar-btn{margin-left:auto}
+.home-avatar{position:absolute;top:calc(18px + env(safe-area-inset-top));right:calc(22px + env(safe-area-inset-right));z-index:4}
+#userMenu{position:fixed;z-index:130;min-width:230px;padding:8px;border-radius:16px;background:rgba(18,22,32,.97);border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 18px 50px rgba(0,0,0,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:umIn .14s ease-out}
+@keyframes umIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+#userMenu .um-head{display:flex;align-items:center;gap:10px;padding:8px 10px 12px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:6px}
+#userMenu .um-head b{font-size:16px}#userMenu .um-head small{display:block;color:var(--muted);font-size:12px}
+#userMenu button.um-it{display:flex;align-items:center;gap:10px;width:100%;padding:11px 10px;border:0;background:none;color:var(--text);font-size:15px;text-align:left;border-radius:10px;cursor:pointer}
+#userMenu button.um-it:hover{background:rgba(255,255,255,.06)}
+#userMenu .um-ico{width:20px;text-align:center;opacity:.85}
+#addForm.floating{position:fixed!important;z-index:140!important;left:0!important;right:0!important;top:50%!important;bottom:auto!important;margin:0 auto!important;transform:translateY(-50%)!important;animation:none!important;width:min(360px,calc(100vw - 32px))!important;max-height:calc(100dvh - 32px);overflow:auto}
+#addBack{position:fixed;inset:0;z-index:135;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 @media (max-width:600px){
   /* horní panel i na úvodní obrazovce (jako v editoru) */
   .home-bar{display:flex!important;align-items:center;justify-content:flex-start;position:sticky!important;top:0;z-index:3;width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box;
@@ -874,6 +891,7 @@ html{background:#05070b}
   /* barva panelu i nad ním (při přetažení stránky dolů / pod stavovým řádkem) */
   .home-bar::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:100vh;background:#10203f;backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%)}
   .home .home-top{display:none}
+  .home-avatar{display:none!important}
   /* editor: stejný horní panel jako na úvodu (modrý, barva i pod stavovým řádkem, stín) */
   html:has(#home[hidden]),html:has(#home[hidden]) body{background:#10203f!important}
   header{padding-top:calc(4px + env(safe-area-inset-top))!important;padding-bottom:4px!important;background:#10203f!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
@@ -938,7 +956,8 @@ html{background:#05070b}
 </head>
 <body>
 <div id="home" class="home">
-  <div class="home-bar" aria-hidden="true"><div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span></div></div>
+  <div class="home-bar"><div class="brand"><i class="bmark" aria-hidden="true"><b>B</b><b>D</b></i><span>Birkis Design</span></div><button class="avatar-btn" type="button" title="Nastavení" aria-label="Nastavení"><span class="av-i">B</span></button></div>
+  <button class="avatar-btn home-avatar" type="button" title="Nastavení" aria-label="Nastavení"><span class="av-i">B</span></button>
   <div class="home-in">
     <div class="home-top"><i class="bmark big" aria-hidden="true"><b>B</b><b>D</b></i><span class="home-brand">Birkis Design</span></div>
     <h1 class="home-title">Vítej<span id="homeName"></span></h1>
@@ -1000,6 +1019,7 @@ html{background:#05070b}
     <button class="btn needs" id="btnReset" title="Vrátit o krok zpět (Cmd+Z)">Vrátit změny</button>
     <button class="btn primary needs" id="btnPng">Stáhnout PNG</button>
     <a class="btn" id="btnLogout" href="/logout" hidden title="Odhlásit se z editoru">Odhlásit</a>
+    <button class="avatar-btn" type="button" title="Nastavení" aria-label="Nastavení"><span class="av-i">B</span></button>
     <input type="file" id="fileSvg" accept=".psd,.psb,.svg,image/svg+xml" hidden>
   </header>
 
@@ -3058,6 +3078,7 @@ function showHome() {
     H.prepend(cl); } }
   H.hidden = false; H.classList.remove('out');
   $('#homeName').textContent = curUser && curUser.name ? ', ' + curUser.name : '';
+  if (typeof renderAvatars === 'function') renderAvatars();
   $('#homeLock').hidden = !(lockOn && LOCK.hash);
 }
 function hideHome() { const H = $('#home'); H.classList.add('out'); setTimeout(() => { H.hidden = true; H.classList.remove('out'); }, 360); }
@@ -3161,8 +3182,53 @@ document.querySelector('header .brand .bmark').addEventListener('click', showHom
 document.querySelector('header .brand .bmark').title = 'Zpět na úvodní obrazovku';
 $('#homeAnim').addEventListener('click', () => $('#btnAnim').click());
 $('#homeLock').addEventListener('click', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); });
-$('#homeAdd').addEventListener('click', () => { $('#addForm').hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = ''; setTimeout(() => $('#addName').focus(), 50); });
-$('#addClose').addEventListener('click', () => { $('#addForm').hidden = true; $('#addForm').reset(); });
+$('#homeAdd').addEventListener('click', () => openAddForm('add'));
+$('#addClose').addEventListener('click', closeAddForm);
+/* ---------- profilovka vpravo nahoře: nastavení (změna hesla, přidat účastníka) ---------- */
+let addMode = 'add';
+function openAddForm(mode) {
+  addMode = mode; const F = $('#addForm');
+  if (F.parentElement !== document.body) document.body.append(F); // ať jde otevřít i z editoru
+  F.classList.add('floating');
+  let back = $('#addBack'); if (!back) { back = document.createElement('div'); back.id = 'addBack'; back.addEventListener('click', closeAddForm); document.body.append(back); }
+  back.hidden = false;
+  const pass = mode === 'pass';
+  F.querySelector('h1').textContent = pass ? 'Změna hesla' : 'Nový účastník';
+  F.querySelector('.lock-sub').textContent = pass ? 'Nastav si nové heslo pro ' + (curUser && curUser.name || 'svůj účet') : 'Jméno se zobrazí na úvodní obrazovce';
+  $('#addName').hidden = pass; $('#addName').required = !pass; $('#addName').value = pass ? (curUser && curUser.name || 'Birkis') : '';
+  $('#addPass').placeholder = pass ? 'Nové heslo' : 'Heslo';
+  $('#addBtn').textContent = pass ? 'Vytvořit kód nového hesla' : 'Vytvořit';
+  $('#addCode p').textContent = pass ? 'Pošli tento kód Claudovi, vymění tvoje heslo (staré pak přestane platit):' : 'Pošli tento kód Claudovi, přidá účastníka do webu:';
+  F.hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = '';
+  setTimeout(() => (pass ? $('#addPass') : $('#addName')).focus(), 50);
+}
+function closeAddForm() { $('#addForm').hidden = true; $('#addForm').reset(); const b = $('#addBack'); if (b) b.hidden = true; }
+function closeUserMenu() { const m = $('#userMenu'); if (m) m.remove(); }
+function openUserMenu(btn) {
+  if ($('#userMenu')) { closeUserMenu(); return; }
+  const r = btn.getBoundingClientRect(), name = curUser && curUser.name || 'Birkis';
+  const it = (ico, txt, fn) => h('button', { class: 'um-it', type: 'button', onclick: () => { closeUserMenu(); fn(); } }, h('span', { class: 'um-ico' }, ico), txt);
+  const items = [
+    it('🔑', 'Změnit heslo', () => openAddForm('pass')),
+    it('＋', 'Přidat účastníka', () => openAddForm('add')),
+    it('◐', 'Animace pozadí', () => $('#btnAnim').click())
+  ];
+  if (lockOn && LOCK.hash) items.push(it('🔒', 'Zamknout', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); }));
+  const m = h('div', { id: 'userMenu', role: 'menu' },
+    h('div', { class: 'um-head' }, h('span', { class: 'avatar-btn', style: 'width:34px;height:34px;font-size:15px;cursor:default' }, name.slice(0, 1).toUpperCase()),
+      h('div', {}, h('b', {}, name), h('small', {}, 'Birkis Design'))), ...items);
+  document.body.append(m);
+  const w = m.offsetWidth;
+  m.style.top = Math.round(r.bottom + 8) + 'px';
+  m.style.left = Math.round(Math.max(8, Math.min(innerWidth - w - 8, r.right - w))) + 'px';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.avatar-btn:not(#userMenu .avatar-btn)');
+  if (b) { e.stopPropagation(); openUserMenu(b); return; }
+  if (!e.target.closest('#userMenu')) closeUserMenu();
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeUserMenu(); if (!$('#addForm').hidden) closeAddForm(); } });
+function renderAvatars() { const n = (curUser && curUser.name || 'Birkis').slice(0, 1).toUpperCase(); document.querySelectorAll('.avatar-btn .av-i').forEach(e => e.textContent = n); }
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
   const n = $('#addName').value.trim(), p1 = $('#addPass').value;
