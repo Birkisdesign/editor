@@ -3106,7 +3106,19 @@ async function loadTemplate(sec, id) {
 }
 async function ensureTemplate(sec) {
   renderTplPick(sec);
-  if (state.svg && state.tpl && tplList(sec).some(t => state.tpl === sec + '/' + t.id + '@' + (t.v || 1))) return false;
+  const okTpl = tpl => !!tpl && tplList(sec).some(t => tpl === sec + '/' + t.id + '@' + (t.v || 1));
+  if (state.svg && okTpl(state.tpl)) return false;
+  if (state.svg) saveNow(); // rozdělanou grafiku druhého editoru si zapamatuj
+  // poslední stav tohohle editoru (muži / ženy mají každý svůj)
+  let d = null; try { d = await idb.get('doc-' + sec); } catch (e) {}
+  if (d && d.boards && d.boards.length && okTpl(d.tpl)) {
+    state.persp = d.persp || null; state.tpl = d.tpl;
+    state.boards = d.boards; state.boardIdx = Math.min(d.idx || 0, d.boards.length - 1);
+    loadSVG(state.boards[state.boardIdx].svg, { name: d.name || 'grafika', restored: true, keepOriginal: true, keepBoards: true });
+    state.original = state.boards[state.boardIdx].original; renderBoards(); await checkFonts();
+    renderTplPick(sec); saveNow(); histReset();
+    return false;
+  }
   let id = null; try { id = localStorage.getItem('ge-tpl-' + sec); } catch (e) {}
   await loadTemplate(sec, id); return true;
 }
@@ -4270,7 +4282,10 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
   if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
 });
-function saveNow() { clearTimeout(saveT); if (!state.svg) return; try { idb.set('doc', snapshot()); } catch (e) {} }
+function saveNow() {
+  clearTimeout(saveT); if (!state.svg) return;
+  try { const snap = snapshot(); idb.set('doc', snap); const sec = (state.tpl || '').split('/')[0]; if (sec) idb.set('doc-' + sec, snap); } catch (e) {}
+}
 window.addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
 
