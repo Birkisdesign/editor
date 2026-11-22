@@ -809,7 +809,7 @@ body{background:#05070b!important}
 /* horní lišta: jen logo (= domů) a štítek sekce */
 header .brand > span{display:none!important}
 #btnHome{display:none!important}
-header .avatar-btn{width:36px;height:36px;font-size:16px;margin-left:2px}
+
 header .brand .bmark{cursor:pointer;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
 header .brand .bmark:hover{transform:scale(1.08)}
 header .brand .bmark:active{transform:scale(.95)}
@@ -865,10 +865,13 @@ html{background:#05070b}
 }
 /* ===== telefon (do 600 px): vlastní jednoduché rozložení ===== */
 .home-bar{display:none}
-.avatar-btn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;padding:0;border:1px solid rgba(255,255,255,.16);cursor:pointer;
-  background:linear-gradient(145deg,#3d8bff,#1d3f86);color:#fff;font:700 17px/1 "Barlow Condensed","Inter",system-ui,sans-serif;letter-spacing:.02em;
-  display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .12s}
-.avatar-btn:hover{transform:scale(1.05)}.avatar-btn:active{transform:scale(.95)}
+.avatar-btn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;padding:0;cursor:pointer;color:#eef1f6;display:grid;place-items:center;
+  background:radial-gradient(120% 140% at 20% 0%,rgba(255,255,255,.06),rgba(255,255,255,0) 55%),rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.22);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);transition:background .15s,transform .12s}
+.avatar-btn:hover{background:rgba(255,255,255,.09)}.avatar-btn:active{transform:scale(.95)}
+.avatar-btn .av-i{font-size:0;width:21px;height:21px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/contain no-repeat}
 .home-bar .avatar-btn{margin-left:auto}
 .home-avatar{position:absolute;top:calc(18px + env(safe-area-inset-top));right:calc(22px + env(safe-area-inset-right));z-index:4}
 #userMenu{position:fixed;z-index:130;min-width:230px;padding:8px;border-radius:16px;background:rgba(18,22,32,.97);border:1px solid rgba(255,255,255,.1);
@@ -880,6 +883,11 @@ html{background:#05070b}
 #userMenu button.um-it:hover{background:rgba(255,255,255,.06)}
 #userMenu .um-ico{width:20px;text-align:center;opacity:.85}
 #addForm.floating{position:fixed!important;z-index:140!important;left:0!important;right:0!important;top:50%!important;bottom:auto!important;margin:0 auto!important;transform:translateY(-50%)!important;animation:none!important;width:min(360px,calc(100vw - 32px))!important;max-height:calc(100dvh - 32px);overflow:auto}
+#setBack{position:fixed;inset:0;z-index:135;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.set-card{position:fixed!important;z-index:140;left:0;right:0;top:50%;margin:0 auto;transform:translateY(-50%)!important;animation:none!important;width:min(380px,calc(100vw - 32px));align-items:stretch!important;text-align:left!important}
+.set-card h1{text-align:center}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;border-top:1px solid rgba(255,255,255,.07)}
+.set-row b{display:block;font-size:15px}.set-row small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 #addBack{position:fixed;inset:0;z-index:135;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 @media (max-width:600px){
   /* horní panel i na úvodní obrazovce (jako v editoru) */
@@ -1019,7 +1027,6 @@ html{background:#05070b}
     <button class="btn needs" id="btnReset" title="Vrátit o krok zpět (Cmd+Z)">Vrátit změny</button>
     <button class="btn primary needs" id="btnPng">Stáhnout PNG</button>
     <a class="btn" id="btnLogout" href="/logout" hidden title="Odhlásit se z editoru">Odhlásit</a>
-    <button class="avatar-btn" type="button" title="Nastavení" aria-label="Nastavení"><span class="av-i">B</span></button>
     <input type="file" id="fileSvg" accept=".psd,.psb,.svg,image/svg+xml" hidden>
   </header>
 
@@ -3202,6 +3209,19 @@ function openAddForm(mode) {
   F.hidden = false; $('#addCode').hidden = true; $('#addBtn').hidden = false; $('#addForm .lock-field').hidden = false; $('#addErr').textContent = '';
   setTimeout(() => (pass ? $('#addPass') : $('#addName')).focus(), 50);
 }
+function openSettings() {
+  closeSettings();
+  const back = h('div', { id: 'setBack', onclick: closeSettings });
+  const anim = !document.documentElement.classList.contains('no-bg-anim');
+  const row = (label, sub, btn) => h('div', { class: 'set-row' }, h('div', {}, h('b', {}, label), sub ? h('small', {}, sub) : null), btn);
+  const card = h('div', { class: 'lock-card set-card', id: 'setCard' },
+    h('h1', {}, 'Nastavení'),
+    row('Heslo', 'Vytvoří kód, který pošleš Claudovi', h('button', { class: 'btn sm', type: 'button', onclick: () => { closeSettings(); openAddForm('pass'); } }, 'Změnit heslo')),
+    row('Animace pozadí', null, h('button', { class: 'btn sm', type: 'button', onclick: e => { $('#btnAnim').click(); e.target.textContent = document.documentElement.classList.contains('no-bg-anim') ? 'Zapnout' : 'Vypnout'; } }, anim ? 'Vypnout' : 'Zapnout')),
+    h('button', { class: 'btn sm', type: 'button', style: 'margin-top:6px', onclick: closeSettings }, 'Zavřít'));
+  document.body.append(back, card);
+}
+function closeSettings() { const a = $('#setBack'), b = $('#setCard'); if (a) a.remove(); if (b) b.remove(); }
 function closeAddForm() { $('#addForm').hidden = true; $('#addForm').reset(); const b = $('#addBack'); if (b) b.hidden = true; }
 function closeUserMenu() { const m = $('#userMenu'); if (m) m.remove(); }
 function openUserMenu(btn) {
@@ -3209,14 +3229,12 @@ function openUserMenu(btn) {
   const r = btn.getBoundingClientRect(), name = curUser && curUser.name || 'Birkis';
   const it = (ico, txt, fn) => h('button', { class: 'um-it', type: 'button', onclick: () => { closeUserMenu(); fn(); } }, h('span', { class: 'um-ico' }, ico), txt);
   const items = [
-    it('🔑', 'Změnit heslo', () => openAddForm('pass')),
+    it('⚙︎', 'Nastavení', openSettings),
     it('＋', 'Přidat účastníka', () => openAddForm('add')),
-    it('◐', 'Animace pozadí', () => $('#btnAnim').click())
+    it('↪︎', 'Odhlásit se', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} curUser = null; if (typeof renderAvatars === 'function') renderAvatars(); showLock(); })
   ];
-  if (lockOn && LOCK.hash) items.push(it('🔒', 'Zamknout', () => { try { sessionStorage.removeItem('ge-unlock'); localStorage.removeItem('ge-unlock'); } catch (e) {} showLock(); }));
   const m = h('div', { id: 'userMenu', role: 'menu' },
-    h('div', { class: 'um-head' }, h('span', { class: 'avatar-btn', style: 'width:34px;height:34px;font-size:15px;cursor:default' }, name.slice(0, 1).toUpperCase()),
-      h('div', {}, h('b', {}, name), h('small', {}, 'Birkis Design'))), ...items);
+    h('div', { class: 'um-head' }, h('div', {}, h('b', {}, name), h('small', {}, 'Birkis Design'))), ...items);
   document.body.append(m);
   const w = m.offsetWidth;
   m.style.top = Math.round(r.bottom + 8) + 'px';
@@ -3227,7 +3245,7 @@ document.addEventListener('click', e => {
   if (b) { e.stopPropagation(); openUserMenu(b); return; }
   if (!e.target.closest('#userMenu')) closeUserMenu();
 }, true);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeUserMenu(); if (!$('#addForm').hidden) closeAddForm(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeUserMenu(); closeSettings(); if (!$('#addForm').hidden) closeAddForm(); } });
 function renderAvatars() { const n = (curUser && curUser.name || 'Birkis').slice(0, 1).toUpperCase(); document.querySelectorAll('.avatar-btn .av-i').forEach(e => e.textContent = n); }
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
