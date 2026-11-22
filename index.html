@@ -877,7 +877,16 @@ html{background:#05070b}
   header{padding-top:calc(4px + env(safe-area-inset-top))!important;padding-bottom:4px!important;background:#10203f!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
     border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:0 10px 28px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35)!important}
   .home > .home-in{padding-top:44px!important}
-  .home .home-sub{margin-bottom:44px!important}
+  .home .home-sub{margin-bottom:49px!important}
+  /* úvod se vejde na jednu obrazovku: menší dlaždice, bez tlačítek pod nimi */
+  .home .home-foot{display:none!important}
+  .home .home-tiles{gap:14px!important}
+  .home .tile{padding:18px 22px!important;min-height:0!important}
+  .home .tile > b{font-size:14px!important}
+  .home .tile-name{font-size:32px!important;line-height:1!important}
+  .home .tile-match{margin-top:16px!important;padding-top:12px!important;font-size:14px!important}
+  .home .home-note{margin-top:16px!important}
+  .home > .home-in{padding-bottom:calc(16px + env(safe-area-inset-bottom))!important}
   header{gap:8px!important;flex-wrap:nowrap!important;overflow:hidden}
   header .brand{gap:8px!important;min-width:0}
   header .sec-badge{font-size:20px!important}
