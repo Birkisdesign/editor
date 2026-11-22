@@ -848,7 +848,7 @@ html{background:#05070b}
   /* ne sticky/fixed – Safari by jinak pod spodní lištou kreslil plný černý pruh; drží se na místě přes JS (posun o scrollY) */
   .home > .bgfx{position:absolute!important;inset:auto!important;top:0!important;left:0!important;display:block;width:100%;height:calc(100lvh + 240px);contain:paint;will-change:transform}
   /* dočasně bez stadionu na pozadí úvodu (test Safari) */
-  .home > .bgfx .court3d{display:none!important}
+  .home > .bgfx > :not(.orb){display:none!important}
   html:has(#home:not([hidden])){background:#0c0f15}
   .home > .home-in{position:relative;z-index:1;margin:0 auto;
     padding:calc(24px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
