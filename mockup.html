@@ -14,13 +14,21 @@ body{display:grid;place-items:center;overflow:hidden}
 .phone::before{content:"";position:absolute;left:-3px;top:180px;width:3px;height:64px;border-radius:2px 0 0 2px;background:#2b2e34;box-shadow:0 90px 0 #2b2e34}
 .phone::after{content:"";position:absolute;right:-3px;top:250px;width:3px;height:100px;border-radius:0 2px 2px 0;background:#2b2e34}
 .screen{position:relative;width:var(--w);height:var(--h);border-radius:54px;overflow:hidden;background:#000}
-.screen iframe{position:absolute;left:0;top:54px;width:100%;height:calc(100% - 54px - 34px);border:0;background:#05070b}
+.screen iframe{position:absolute;left:0;top:54px;width:100%;height:calc(100% - 54px);border:0;background:#05070b}
 .status{position:absolute;inset:0 0 auto 0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 34px 0 44px;font-weight:600;font-size:16px;color:#fff;z-index:2;background:#10203f}
 .island{position:absolute;left:50%;top:11px;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#000;z-index:3}
 .icons{display:flex;gap:6px;align-items:center}
 .bat{width:25px;height:12px;border:1.5px solid rgba(255,255,255,.55);border-radius:4px;position:relative}
 .bat::after{content:"";position:absolute;inset:1.5px;right:5px;background:#fff;border-radius:1.5px}
-.home{position:absolute;left:0;right:0;bottom:0;height:34px;background:#05070b;z-index:2}
+.home{position:absolute;left:0;right:0;bottom:0;height:34px;z-index:4;pointer-events:none}
+/* lišta Safari (iOS 26): plovoucí, obsah prosvítá pod ní */
+.safari{position:absolute;left:12px;right:12px;bottom:26px;height:56px;display:flex;align-items:center;gap:8px;z-index:3}
+.glass{background:rgba(48,52,62,.55);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 8px 24px rgba(0,0,0,.35)}
+.circ{flex:0 0 52px;height:52px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.pill{flex:1;height:52px;border-radius:26px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff;font-size:15px;min-width:0}
+.pill .url{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em}
+.pill svg,.circ svg{flex:0 0 auto;cursor:pointer}
 .home::after{content:"";position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.85)}
 .bar{display:flex;gap:10px;align-items:center;font-size:13px;color:#9aa4b5}
 .bar button{font:inherit;color:#e6ebf3;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 12px;cursor:pointer}
@@ -35,7 +43,16 @@ body{display:grid;place-items:center;overflow:hidden}
         <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 11.5 5.6 8.9a3.4 3.4 0 0 1 4.8 0zM3.5 6.8a6.4 6.4 0 0 1 9 0l-1.4 1.4a4.4 4.4 0 0 0-6.2 0zM1.3 4.6a9.5 9.5 0 0 1 13.4 0l-1.4 1.4a7.5 7.5 0 0 0-10.6 0z"/></svg>
         <span class="bat"></span></span></div>
       <div class="island"></div>
-      <iframe id="app" src="./" title="Birkis Design"></iframe>
+      <iframe id="app" name="app" src="./" title="Birkis Design"></iframe>
+      <div class="safari">
+        <div class="circ glass" title="Zpět" onclick="try{app.contentWindow.history.back()}catch(e){}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="pill glass">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          <span class="url">grafika.birkisdesign.cz</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" onclick="app.src='./?t='+Date.now()"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+        </div>
+        <div class="circ glass" title="Panely"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="13" height="13" rx="3"/><path d="M8 7V6a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-2"/></svg></div>
+      </div>
       <div class="home"></div>
     </div>
   </div>
